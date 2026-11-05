@@ -53,3 +53,27 @@ do not need to be included.
 - Verification: Re-evaluated all 16 specification-quality criteria with no state changes;
   checked requirement ownership, acceptance coverage, placeholders, and document links.
   Specification and checklist content remain unchanged. No application tests were run.
+
+## 2026-11-05: Scope and review-cost assessment
+
+- Task: Identify unnecessary planned components and tests before implementation.
+- Assistance: Codex reviewed the plan and contracts against required outcomes and the
+  constitution's simplicity principle; identified removable backend abstractions, generic
+  record validation/lifecycle infrastructure, workflow commands, exposure tracking,
+  detailed profiling, and duplicate test layers.
+- Verification: Confirmed recommendations preserve data separation, reproducibility,
+  focused data/metric correctness checks, baseline/inference/evaluation evidence, and
+  course deliverables. This was a design review; no implementation tests were needed.
+
+## 2026-11-05: Simplify implementation scope after review
+
+- Task: Apply the approved reductions to the implementation design before task generation.
+- Assistance: Codex revised the plan, research, data model, three contracts and quickstart
+  to use direct wrappers, six command handlers, compact metadata, documented human
+  comparison/selection, one inference timer and focused data/metric tests with one opt-in
+  CPU smoke check. Removed requirements for backend/schema frameworks, orchestrators,
+  custom lifecycle/exposure/resume systems, public fixture generation and duplicate suites.
+- Verification: Checked consistency across the seven artifacts, command examples, links,
+  requirement ownership, preserved evaluation/data safeguards and constitution compliance.
+  All nine deliverables and 39 functional requirements remain. No implementation, dependency
+  installation, application tests, training or course submissions occurred.

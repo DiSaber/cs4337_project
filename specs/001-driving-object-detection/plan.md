@@ -1,50 +1,50 @@
 # Implementation Plan: Driving Scene Object Detection
 
-**Branch**: `main` (actual `.git/HEAD`); setup resolves feature context `001-driving-object-detection` | **Date**: 2026-11-05 | **Spec**: [spec.md](spec.md)
+**Branch**: `main` (actual branch at planning); feature context `001-driving-object-detection` | **Date**: 2026-11-05 | **Spec**: [spec.md](spec.md)
 
-**Input**: `specs/001-driving-object-detection/spec.md`. Planning ends at Phase 1 design. No implementation tasks, source implementation, model training, account changes, or submissions are completed by this document.
+**Input**: The complete project specification. Revised after the user's scope review to minimize implementation and review work. The nine deliverables and all 39 requirements remain; this document plans their implementation without creating tasks or application code.
 
 ## Summary
 
-Build a small Python CLI around a pinned YOLOv5s release for a reproducible three-class BDD100K subset. Prepare sequence-disjoint manifests, train a baseline on a single NVIDIA GPU/Colab, expose image/video inference, evaluate with explicit COCO-style AP and fixed-operating-point P/R, compare one input-size candidate, and freeze the selected configuration before final held-out testing. Keep report/presentation handoffs distinct, with captured dashcam footage optional.
+Build a small Python package with direct wrappers around pinned YOLOv5 training/inference and pycocotools evaluation. Prepare a fixed three-class BDD100K subset, train one baseline, demonstrate image/video inference, compare two inference sizes, and evaluate the selected configuration on held-out data. Keep report/presentation handoffs separate and dashcam work optional.
 
-Deliver the nine cohesive PR units D1–D9 below. Common contracts are defined here and implemented in D1; later components own separate modules. The dependency graph permits training, inference, and evaluator development in parallel without treating fixtures as measured project results.
+Use ordinary functions, a few configuration files, and small run records. Core acceptance and candidate selection are documented reviews. No backend framework, plugin registration, generic schema validator, experiment orchestrator, custom resume system, or exposure-tracking service is required.
 
 ## Technical Context
 
-**Language/Version**: Python 3.11; initial reproducibility target 3.11.9. Record exact interpreter build. Windows PowerShell for local setup/CPU checks; Linux/Colab for GPU training using the same package/configurations.
+**Language/Version**: Python 3.11; record the actual interpreter build.
 
-**Primary Dependencies**: YOLOv5 v7.0 at `915bbf294bb74c859f0b41f1c23bc395014ea679`, torch 2.5.1 + torchvision 0.20.1, numpy 1.26.4, Pillow 9.5.0, opencv-python 4.10.0.84, PyYAML 6.0.2, pycocotools 2.0.10, pytest 8.3.5. These are research-backed initial targets, not a tested environment. D1 resolves complete CPU/CUDA locks and records any necessary compatibility adjustment before experiments; disable runtime dependency auto-install and external experiment trackers.
+**Primary Dependencies**: YOLOv5 v7.0 source commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; initial compatibility targets torch 2.5.1 / torchvision 0.20.1, numpy 1.26.4, Pillow 9.5.0, opencv-python 4.10.0.84, PyYAML 6.0.2, pycocotools 2.0.10, pytest 8.3.5. D1 verifies imports/checkpoint loading and records tested environment versions; these pins have not been installed or tested during planning. Disable upstream automatic installation and unrequested external trackers. Preserve licenses and citations.
 
-**Storage**: Files only. Tracked YAML configs/schema definitions and compact result summaries; ignored `data/` (archives/raw/prepared), `external/` (pinned model code/weights), `artifacts/` (runs/checkpoints/predictions/videos). Every external artifact has identity/hash and acquisition/retrieval instructions. Configuration and stored paths are relative to an explicit workspace root; secrets come from local environment without being logged.
+**Storage**: Local files. Ignore `data/`, `external/`, `artifacts/` and credentials. Track configurations, compact summaries, references, and instructions to retrieve team-accessible large artifacts. Hash assets, dataset manifests, checkpoints and saved resolved configs for identity; do not build a linked graph of record digests.
 
-**Testing**: pytest fixtures for data integrity, coordinate/label conversion, matching correctness, contract validation, lifecycle/holdout guards; tiny CPU train/load/image/video integration; a declared GPU baseline, validation comparison, and final held-out run for measured claims. Tests never require bulk data or GPU by default. No artificial full-model accuracy target.
+**Testing**: Focused data-integrity and metric-correctness tests, plus one opt-in CPU pipeline smoke test. Small fixtures are private test helpers. No separate contract-test layer, public fixture generator, model-architecture tests, or repeated training as a routine PR check.
 
-**Target Platform**: Windows x86-64 CPU readiness and smoke; Linux x86-64 NVIDIA GPU, ideally >=8 GB VRAM, including Colab. User confirmed single-GPU/Colab. CUDA 12.1 wheel profile is provisional until hardware readiness succeeds. Avoid reliance on Colab's changing global interpreter/dependencies; install an isolated supported interpreter/environment and record it. GUI windows are not required.
+**Target Platform**: Single NVIDIA GPU/Linux or Colab for reported training; local Windows CPU setup/smoke checks. User confirmed this target. CUDA 12.1 is an initial installation profile subject to actual GPU/driver compatibility. Keep a tested environment file for each execution platform used, without a broad cross-platform CI matrix.
 
-**Project Type**: Single installable CLI/research pipeline; no HTTP service, authentication system, or database. Optional thin Colab launcher uses the same commands.
+**Project Type**: One CLI package with six commands: assets sync, check, data prepare, train, infer, evaluate. No web service/database.
 
-**Performance Goals**: Measure accuracy and latency honestly, not promise real time. Train size 640/batch 8/20 epochs with seed 4337, <=8 GPU-hours; compare inference sizes 640/960 within 1 GPU-hour; reserve 1 GPU-hour for final evaluation/demos. Batch 4/2 fallback is selected and recorded before a reported training run if needed. Exhausted budget means interrupted status and a new explicitly declared run/profile if continued.
+**Performance Goals**: Measure accuracy and speed without inventing a target. Baseline: size 640, batch 8, 20 epochs, seed 4337, at most 8 GPU-hours including training validation. Choose batch 4/2 before the reported run if needed and record it. Allow up to 1 GPU-hour for the validation comparison and reserve 1 for final testing/demonstrations; record actual use and any incomplete work. Smoke: one small CPU epoch at size 320/batch 2, never accuracy evidence.
 
-**Constraints**: Core before optimization/stretch; disjoint frozen partitions; heldout guarded until frozen selection; no large assets/credentials in Git; idempotent acquisition with manual-access fallback; student-authored three-page report; 5–10 minute presentation; displayed report cutoff December 2, 2026, 11:59 p.m., subject to Canvas timezone/date verification.
+**Constraints**: Core D1–D5 before optimization/stretch; sequence-disjoint partitions; select on validation before test; idempotent asset setup; student-authored three-page report; 5–10 minute presentation. Saved report deadline December 2, 2026, 11:59 p.m. requires current Canvas/timezone verification.
 
-**Scale/Scope**: Default eligible subset 5,000 train / 1,000 validation / 1,000 heldout, three classes. Synthetic smoke profile 24/12/12, one CPU epoch at size 320/batch 2; no measured accuracy claim. New-scene image set and short video for demonstration. Nine deliverables, 36 required functional requirements and three optional requirements.
+**Scale/Scope**: 5,000 eligible training sequences/images from official train, 1,000 project validation and 1,000 project test from official labeled val. Three classes: car, pedestrian, traffic light. One baseline, one inference-size candidate, one final selected configuration.
 
 ## Constitution Check
 
-Pre-research gate review accepted the required scope with no conflict. Post-design review below verifies each principle has a concrete planned control. PASS means design compliance, not that future execution evidence already exists.
+PASS means the design supplies controls, not that experiments or submissions have occurred.
 
-| Gate | Before research | After design | Required control / evidence |
-| --- | --- | --- | --- |
-| I Reproducible experiments | PASS | PASS | Immutable asset identities, resolved configs/locks, seeds/commands, run records, hashes, hardware and nondeterminism; [records contract](contracts/records.md) |
-| II Reliable evaluation | PASS | PASS | Sequence/content integrity, frozen manifests, final-selection guard, controlled metric fixtures, explicit AP/P/R and timing; [pipeline contract](contracts/pipeline.md) |
-| III Core first | PASS | PASS | D1–D5 integration gate before D6/D9; D9 absent from required dependency chains |
-| IV Evidence for claims | PASS | PASS | Results tied to run/model/data hashes, successes/failures and limitations; failed attempts preserved; [data model](data-model.md) |
-| V Simple implementation | PASS | PASS | Established model, one CLI, local files, pinned external checkout, idempotent assets, docs and focused checks; no services |
-| VI Integrity/AI transparency | PASS | PASS | Per-PR AI log and source notices; students author report; external course actions remain separately evidenced |
-| Course constraints/governance | PASS | PASS | Separate deliverables checklist, three-page interpretation retained, account/date conflicts tracked; no constitution amendment |
+| Gate | Design status | Control and evidence |
+| --- | --- | --- |
+| I Reproducible experiments | PASS | Dataset/manifest identities, preprocessing, model/initial weights, tested versions, seeds, settings, commands, hardware and nondeterminism in a run record |
+| II Reliable evaluation | PASS | Disjoint frozen splits, focused integrity/metric checks, validation-only selection, recorded selection before final test, defined AP/P/R and timing |
+| III Core first | PASS | D1–D5 integration reviewed before D6/D9; D9 has no required dependents |
+| IV Evidence for claims | PASS | Preserved results, checkpoint/config identities, successes/failures and limitations; failed attempts remain visible |
+| V Simple implementation | PASS | Direct established-library calls, six command handlers, local files, small checks; no general framework |
+| VI Integrity/AI transparency | PASS | Citations, per-task AI log, student report authorship |
+| Course constraints | PASS | Separate course checklist with roles, access, deadlines, submissions, conflicts and audience follow-up |
 
-No unjustified violations or unresolved technical decisions remain. Dataset availability, actual dependency compatibility/hardware, and course access/date confirmations are explicit execution prerequisites with fail/report behavior, not assumed successes.
+The authorized simplification preserves constitutional requirements and needs no governance amendment. Data access, actual environment compatibility, and course confirmations remain execution prerequisites.
 
 ## Project Structure
 
@@ -64,112 +64,91 @@ specs/001-driving-object-detection/
     └── pipeline.md
 ```
 
-`tasks.md` is a later `$speckit-tasks` artifact and is deliberately not generated here.
+`tasks.md` is generated later by `$speckit-tasks`.
 
-### Source Code (repository root — proposed, not yet implemented)
+### Source Code (proposed)
 
 ```text
 pyproject.toml
-requirements/                 # validated cpu/cuda locks, constraints
+requirements/                  # tested CPU/GPU environment files
 configs/
 ├── assets.yaml
 ├── data/bdd-subset.yaml
-├── data/smoke.yaml
 ├── train/baseline.yaml
-├── train/smoke.yaml
-├── evaluation/default.yaml
-└── experiments/input-size.yaml
+└── evaluation/
+    ├── default.yaml           # size 640
+    └── size-960.yaml
 src/driving_detection/
-├── __main__.py                # lazy subcommand routing
-├── common/                    # config, hashes, records, errors
-├── assets/                    # acquisition/readiness
-├── data/                      # BDD conversion/manifests/validation
-├── backends/
-│   ├── contracts.py           # common detector/training metadata protocols
-│   ├── yolov5_train.py
-│   └── yolov5_infer.py
-├── training/
-├── inference/
-├── evaluation/
-└── experiments/               # compare/freeze/final guards, optional capture study
+├── __init__.py
+├── __main__.py                # ordinary argparse dispatch
+├── assets.py
+├── data.py
+├── train.py
+├── infer.py
+├── evaluate.py
+└── records.py                 # only shared I/O/config/hash helpers actually used
 tests/
-├── fixtures/                  # tiny synthetic images/labels/video recipes
-├── unit/
-├── contract/
-└── integration/
+├── conftest.py                # tiny generated fixtures
+├── test_data.py
+├── test_metrics.py
+└── test_smoke.py              # opt-in, one CPU pipeline pass
 docs/
-├── setup.md
-├── data.md
-├── experiments.md
-├── inference.md
-├── evaluation.md
-├── course-deliverables.md
+├── usage.md                   # setup, inputs, outputs, experiments
 ├── references.md
 ├── ai-use-log.md
-├── report/                    # student-authored source, submission pointers
-└── presentation/              # slides/source, recording/review pointers
-data/                         # ignored archives/raw/prepared
-external/                     # ignored source/weights
-artifacts/                    # ignored runs/results/annotated media
-results/                      # tracked small summaries + retrieval instructions
+├── course-deliverables.md
+├── report/
+└── presentation/
+results/                      # small summaries, selected.yaml, artifact retrieval pointers
+data/                         # ignored datasets/prepared data
+external/                     # ignored model source/initial weights
+artifacts/                    # ignored run outputs/checkpoints/media
 ```
 
-**Structure Decision**: One package with command modules and shared contracts avoids large shared-file edits. Heavy detector imports are lazy so setup/data/evaluator fixtures work independently. D1 owns routing and common protocol/schema foundations; D3 and D4 implement separate training/inference adapters. Store course completion tracking outside Spec Kit's quality checklists so an unsubmitted video does not block unrelated implementation.
+**Structure Decision**: One module per pipeline concern keeps PR ownership clear. Use direct function calls and delayed heavy imports where necessary. The short file contracts are documentation for parallel work, not a reason to create an abstraction or validation framework.
 
-## Phase 0 — Research decisions
+## Research and design outputs
 
-[research.md](research.md) resolves the runtime/asset choices, source label and coordinate semantics, split policy, compute budget, local versus hosted preprocessing, AP/P/R/timing definitions, optimization rule, and course handoff boundaries. All initial unknowns were resolved as decisions or explicit execution prerequisites with failure behavior.
-
-Use local preprocessing rather than mandatory Roboflow, preserving the spec's allowed substitution and documenting why. Direct pycocotools AP plus a focused operating-point count layer is the chosen evaluator. Use existing assets if the official data host is inaccessible; never silently change labels/dataset.
-
-## Phase 1 — Design and contracts
-
-- [data-model.md](data-model.md): entity fields, relationships, validity, immutable identities, and state transitions.
-- [contracts/cli.md](contracts/cli.md): user commands, common options, errors, resumability, and artifacts.
-- [contracts/records.md](contracts/records.md): versioned on-disk data/run/model/prediction/evaluation/course records.
-- [contracts/pipeline.md](contracts/pipeline.md): conversion/splits, training and backend interfaces, evaluation/timing, candidate selection, final-test gate.
-- [quickstart.md](quickstart.md): future runnable verification scenarios from setup through final handoff; commands are design contracts until implemented.
-
-Design is complete for task generation. D1 must implement contract validators and independently test the selected environment before accepting actual training outputs. File contracts, not hidden model internals, connect components.
+[research.md](research.md) retains the researched model/data decisions and records the approved scope reduction. [data-model.md](data-model.md) describes the small set of persisted information. [CLI](contracts/cli.md), [records](contracts/records.md), and [pipeline](contracts/pipeline.md) documents specify inputs, outputs and domain rules. [quickstart.md](quickstart.md) describes future verification commands; none have been executed during planning.
 
 ## Delivery sequence and PR acceptance
 
-Every PR includes focused verification, usage updates, citations where needed, and its AI-use entry. It owns only the requirements in its row; later work must not require jumping between unfinished deliverables. This is a handoff plan, not a generated task checklist.
+Each PR includes appropriate verification, usage updates, citations and its AI-use entry. Materially changed source/metric behavior warrants focused checks; routine prose/config edits do not justify new test suites.
 
 | Unit / requirement ownership | Implementation scope | Evidence required to merge |
 | --- | --- | --- |
-| D1 / FR-001–004 | Packaging, common config/record validators and backend protocols, lazy CLI dispatch, asset commands, tested environment locks, ignored paths, setup/reference docs | Fresh/repeat acquisition on small fixtures; interrupted/hash-failure handling; official checkpoint load plus tiny compatibility probe; tested CPU profile and declared GPU readiness; no bulk data in Git |
-| D2 / FR-005–010 | BDD versioned adapter, class/geometry conversion, eligibility/exclusions, sequence/content checks, deterministic subset and YOLO/COCO exports, manifests | Repeatable hashes; malformed/unknown/negative/ignored and boundary-box fixtures; zero overlap and per-partition class coverage; actual preparation summary |
-| D3 / FR-011–014 | Training adapter/wrapper, complete resolved hyperparameters, lifecycle/checkpoint records and validation-only checkpoint selection | CPU smoke integration and a completed declared baseline; loadable checkpoint, command/seed/environment/data records, interruption status; no final test use |
-| D4 / FR-015–017 | Inference adapter, class remapping, deterministic preprocessing/NMS, image/video serialization and annotations | Compatible reference-model image/video checks, empty/invalid/partial cases; D3 baseline integration before declaring whole core complete |
-| D5 / FR-018–022 | COCO AP adapter, fixed P/R counts, timings, validation summaries and evidence selection | Controlled metric fixtures, baseline validation record, per-class metrics, fixed timing stages and representative success/failure cases |
-| D6 / FR-023–025 | Input-size comparison, selection freeze, heldout guard/final command and final evidence | Core integration gate; bounded validation comparison, reasoned choice, frozen hashes, selected model's final heldout result; unsuccessful attempt retained |
-| D7 / FR-026–032 | Code handoff review, 36-requirement inventory, course checklist, contributor/citation/link records, student report handoff | Three-page student-authored PDF review or explicit remaining authoring action, understandable code/docs, honest completed/partial status; external access/submission actions pending until evidenced |
-| D8 / FR-033–036 | Presentation outline/materials, rehearsal review, recording/upload handoff, later audience follow-up | Four required topics; 5–10 minute timing/readability/audio review; pending student uploads/feedback explicit; separate follow-up PR if feedback arrives later |
-| D9 / FR-037–039 | Optional capture metadata, dashcam inference/qualitative review and labeled evaluation only if labels exist | Core already accepted, capture conditions/unknowns recorded, observational limitations, evidence or explicit skip; cannot delay D1–D8 |
+| D1 / FR-001–004 | Packaging/CLI skeleton, asset download/import and reuse, tested environment notes, ignored paths and setup docs | Fresh/repeat setup and failed-download recovery checks; imports/official checkpoint loading; no training compatibility pipeline duplicated here |
+| D2 / FR-005–010 | BDD conversion, class mapping, geometry, eligible subset, split/manifests and YOLO/COCO exports | Focused integrity tests, repeatable manifests, real preparation counts and class coverage |
+| D3 / FR-011–014 | Direct upstream training wrapper, resolved settings and compact run record | Completed declared GPU baseline, loadable checkpoint and reproducibility evidence; the connected CPU smoke waits until D4/D5 are available |
+| D4 / FR-015–017 | Direct inference/NMS wrapper, canonical predictions, image/video outputs and error handling | Image/video/empty/invalid examples; baseline integration verified when D3 is available |
+| D5 / FR-018–022 | Established AP evaluator, fixed P/R counts, one timing measurement, examples | Focused metric cases, baseline validation results and timing; manual review confirms integrated D1–D5 evidence |
+| D6 / FR-023–025 | Two ordinary validation evaluations, comparison table, selected configuration, ordinary test evaluation | Same checkpoint/protocol/device; recorded decision before final test; preserved negative/failed attempts |
+| D7 / FR-026–032 | Code handoff, completion inventory, course checklist, student report materials | Required report/code review; names/roles/references/links and pending external actions explicit |
+| D8 / FR-033–036 | Presentation materials/rehearsal, upload handoff, audience answers | Four topics, 5–10 minute readable/audible recording; submissions/follow-up pending until evidenced |
+| D9 / FR-037–039 | Optional capture notes and existing inference/evaluation commands | Capture conditions, qualitative limits or real labels for accuracy, evidence or explicit skip |
 
-**Dependency order**: D1 → D2 → D3; D4 uses D1 contracts and D2 class mapping and can use a reference model while D3 runs; D5 fixtures can start after D1 contracts, then use D2/D3 outputs for measured evidence. D3/D4/D5 develop in parallel after those inputs are fixed. Core acceptance requires all D1–D5 integrated. D6 follows core. D7/D8 preparation can start immediately but final claims consume D6 evidence or disclose partial status. D9 follows core and has no required downstream dependents.
+**Dependencies and parallel work**: D1 → D2 → D3. D4 can develop after D1 and agreed D2 mapping using the official COCO checkpoint as a clearly marked reference. D5 metrics can develop against tiny canonical fixtures independently of training; actual baseline evidence needs D2/D3. D3/D4/D5 own separate modules. Manually review the integrated core before D6 or D9. D7/D8 preparation may start early; final claims use results or disclose partial completion. D9 cannot delay required work.
 
-**Reference model rule**: D4 may use the official COCO checkpoint with explicit mapping `{2:0, 0:1, 9:2}` and filtering of other classes. It is marked `reference_coco`, never a trained three-class result. D3's trained head uses project IDs directly. Model metadata makes this distinction machine-checkable.
+## Minimal verification and evidence
 
-**Core gate**: Actual prepared profile, baseline training/load, image/video inference, validation metrics, timing and representative examples all share recorded identities. Fixture-only passes do not satisfy the gate.
+- Automated data checks cover readability/annotation correspondence, target/excluded/unknown labels, inclusive-to-half-open box conversion, valid negatives, ignored samples, sequence/content overlap, class coverage, and repeatable selection. Combine related cases rather than duplicate unit/contract/integration tests of the same outcome.
+- Automated metric checks use known predictions for perfect/missed/false/duplicate/wrong-class/empty/IoU-boundary cases and absent-class handling. Reuse pycocotools AP; do not test upstream model internals.
+- One opt-in CPU smoke test trains a tiny fixture for one epoch, loads it, runs image/video inference, and invokes evaluation. It requires model assets, is run when the connected pipeline is available or materially changes, and does not repeat for every PR. Private fixtures use the same BDD-shaped importer, not another dataset product.
+- Verify setup reuse/checksum failures and inspect saved media with small operational checks. Add dedicated automation only if implementation complexity or a real failure warrants it.
+- Keep ordinary input checks where files are consumed: class/head compatibility, required values, hashes, finite boxes/scores and complete evaluation membership. No generic schema/lifecycle test suite.
+- Real measured claims require the actual GPU baseline, validation comparison and selected final test, not more synthetic tests. Full retraining is unnecessary for unrelated changes.
 
-## Validation and evidence strategy
+Keep the reproducibility fields required by FR-012 in one `run.json` beside resolved settings, logs, predictions and `metrics.json`. Hash file bytes for identity; avoid a custom canonical serialization scheme. Never overwrite an existing run directory. Preserve failed/interrupted status in the same record; restart with a new run ID rather than implement custom resume lineage.
 
-Default automated checks cover schema compatibility, stable hashes, missing/corrupt assets, geometry conversion/roundtrip, negative images, unknown/excluded labels, ignored samples, sequence and byte-duplicate leakage, per-class coverage, model mapping, deterministic prediction ordering, metric edge cases, empty results, candidate rule, and holdout authorization. Tests assert public outcomes, not implementation call structure.
+## Selection, timing, and course handoff
 
-Run a tiny CPU integration when training/inference interfaces change; run real GPU training only to validate baseline/training changes or support reported findings. Record validation AP/P/R and timing for baseline and candidate on identical partitions/device/precision. Synchronize GPU timing. Inspect actual original/annotated examples, not only metrics. Large artifacts remain ignored, while tracked summaries include artifact hashes and a documented team-accessible storage location; a path on one machine alone is insufficient handoff evidence.
+Evaluation records one synchronized batch-1 inference duration over a fixed subset of its evaluated partition after warm-up; comparison timing uses identical validation samples. Its declared stages are preprocessing, transfer, model forward and NMS; decoding, drawing and encoding are excluded. Report mean ms/image and throughput, sample/warm-up counts, hardware/input/batch/precision and timing boundaries. No per-stage/p95 profiling or separate benchmark command.
 
-Use immutable run directories and atomic writes. Failed commands preserve status/logs and never masquerade as completed runs. A frozen selection references model, manifest, environment/config hashes, comparison results and timestamp before the final command is allowed. Later reruns for reproduction use the same freeze and are labeled reproductions; new tuning after test exposure requires a new untouched holdout or explicit exploratory labeling.
+Compare sizes 640/960 on the same validation membership/checkpoint. Choose 960 only if AP50:95 improves by at least 0.005 and mean measured latency is at most 1.5× baseline; otherwise keep 640. A human records the two evaluation references, choice and reason in `results/comparison.md`, and saves `results/selected.yaml` identifying checkpoint, manifests, environment and resolved config hashes before testing. Test evaluation checks those few fields against its actual inputs. Record any attempted test in the ordinary run log; no exposure ledger or custom state machine. Later tuning cannot be reported as unbiased testing on the same holdout.
 
-## Course handoff and completion inventory
-
-`docs/course-deliverables.md` will track each FR-001–036 with owner, pending/partial/verified status, evidence, and review date. Report satisfied requirements/36 with the exact inventory, not an inferred effort percentage or guarantee of grading credit. Optional FR-037–039 is separate. Early checklist/access preparation belongs to D7, even if merged ahead of final report content; no automatic external messages or permissions changes.
-
-Track December 2, 2026, 11:59 p.m. as the saved report deadline pending current Canvas/timezone confirmation. Track report authoring/review, all names/roles on front page, three-page PDF, references and links, instructor identity/hosting conflict, notebook sharing if applicable, one submitter, Canvas report/comment evidence. Presentation tracking includes its independently verified deadline, slides, Unlisted YouTube link/comment, incognito playback, timing/readability/audio, peer-feedback review and Top 10 Response Page answers. Completion remains pending if external actions or audience responses are outstanding.
-
-The three-page interpretation and differing instructor identifiers remain exactly as recorded in the spec; no governance or scope amendment is introduced.
+`docs/course-deliverables.md` tracks FR-001–036 with owner/status/evidence and satisfied-count/36, explicitly a requirement count rather than effort/grading credit; optional D9 is separate. Track the three-page report, roles/front page, citations/links/access, verified deadlines/timezones, one report submitter, upload/comments evidence, presentation recording/slides/video link/incognito playback and Top 10 responses. Keep account/hosting conflicts and pending human actions visible. Students author the report and perform external actions unless separately authorized.
 
 ## Complexity Tracking
 
-No constitution violations require an exception. Custom code is limited to acquisition/provenance, versioned data conversion, project interfaces, operating-point counts, lifecycle/holdout guards, and evidence packaging. Training architecture, NMS, and AP reuse established implementations.
+No constitution exceptions. Do not reintroduce a backend protocol, generic schema framework, command registry, experiment orchestrator, custom resume/exposure machinery, fixture-generation CLI, or separate contract-test suite during task generation. Add structure only when an implemented requirement demonstrates the need.
+

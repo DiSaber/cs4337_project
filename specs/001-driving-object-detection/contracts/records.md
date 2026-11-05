@@ -1,73 +1,65 @@
-# Record Contract v1
+# File Record Contract
 
-This is the shared on-disk contract for independently developed components. D1 implements validators; later producers/consumers add examples and focused compatibility tests. See [data-model.md](../data-model.md) for full fields, relationships and lifecycle; see [pipeline.md](pipeline.md) for algorithms. These are file interfaces, not HTTP endpoints.
+Keep only information required for reproducibility and component handoff. Use UTF-8 JSON/JSONL for outputs, YAML for configuration, and Markdown for comparisons/course tracking. See [data model](../data-model.md) and [pipeline rules](pipeline.md).
 
-## Encoding, identity, and atomicity
+Check required values, finite numbers, class/box validity, identities and file existence where consumed. Do not introduce generic schema validation, custom canonical JSON hashing, a record registry, or a linked digest graph. SHA-256 of actual asset/manifest/checkpoint/resolved-config bytes is sufficient. Stored artifact paths should be workspace-relative; large artifact handoff needs team-accessible retrieval instructions. Never serialize secrets or signed credential-bearing URLs.
 
-- UTF-8 JSON/JSONL, YAML configuration; schema_version integer 1 required. Arrays preserve declared ordering; object-key order is immaterial except canonical hashing. Reject nonfinite values and unknown enum values.
-- Hash record content as sorted-key compact JSON excluding its own digest, UTF-8 without BOM; hash manifest/asset/model bytes directly. Persist the hashing/adapter/config version. Checksums are lowercase hex with an explicit algorithm.
-- Paths are workspace-relative with forward slashes in records. Host/device information is separate metadata. Do not store secrets or private signed URLs. Team storage references identify how another contributor obtains the artifact.
-- Write to a sibling temporary file then atomically replace only the same run's lifecycle file; promote final immutable records only on complete validation. Existing unrelated IDs cannot be overwritten.
-- Required fields below are minimums; the data model defines their content. A v1 producer must not silently change coordinate/class/metric semantics. Incompatible changes require a new schema/profile version and migration guidance.
+## Asset inventory
 
-## Dataset bundle
+One assets.json records public source/version, expected checksum if published, observed SHA-256, path, expected members, terms/citations and verification result for each required asset. Source commit and acquired weight identity must be stable before reported experiments. A first-download observed hash is provenance, not an invented publisher signature.
 
-`profile.json` MUST contain profile_id, schema_version, dataset asset identities, annotation release/adapter, synthetic boolean, class_map/hash, split rule/seed, source/eligible/selected counts, exclusions/reasons, preprocessing, three manifest references/hashes, coverage/integrity result, status=frozen, and digest. Only a validated immutable profile is usable by training.
+## Prepared dataset
 
-Each `manifest.<partition>.jsonl` line contains schema_version, sample_id, source image path/hash/dimensions, source official partition, source sequence ID/provenance, project partition, annotations, source attributes, lineage and conversion/exclusion metadata. Only eligible samples appear in membership files; rejected/quarantined samples appear in a separate integrity audit.
+profile.json contains profile ID, BDD annotation/assets identity, class mapping, selection/seed/preprocessing rules, requested/actual counts, exclusions/reasons, integrity outcome, manifest/export references and their byte hashes.
 
-Canonical annotation object:
+Each manifest.train.jsonl, manifest.val.jsonl and manifest.test.jsonl line records sample ID, image path/hash/dimensions, source official partition, sequence ID/provenance, project partition, canonical/source annotations and available scene attributes. Sort membership by sample ID for repeatable bytes. Audit rejected/quarantined samples separately from eligible membership.
+
+Canonical annotation example:
 
 ```json
-{"annotation_id":"object-1","class_id":0,"bbox_xyxy":[10.0,20.0,31.0,41.0],"source_category":"car","source_bbox_xyxy":[10.0,20.0,30.0,40.0],"source_inclusive":true,"clipped":false}
+{"annotation_id":"object-1","class_id":0,"bbox_xyxy":[10.0,20.0,31.0,41.0],"source_category":"car","source_bbox_xyxy":[10.0,20.0,30.0,40.0],"clipped":false}
 ```
 
-Empty `annotations: []` means a valid negative image. Canonical IDs are car=0, pedestrian=1, traffic_light=2. Box coordinates refer to original decoded images, with half-open continuous area `(x2-x1)*(y2-y1)`.
+Canonical IDs: car=0, pedestrian=1, traffic_light=2. Boxes use original-image half-open geometry. Empty annotations=[] is a valid negative.
 
-Training export: YOLO normalized center-x/center-y/width/height plus class 0–2; original-image geometry is the sole source. Empty label files preserve negatives. Train/val paths only enter the training data YAML; holdout is not passed to the trainer.
+YOLO export uses class 0–2 plus normalized center/size and empty label files for negatives. COCO export uses stable integer image IDs from sorted sample IDs, category IDs 1–3, bbox=[x1,y1,x2-x1,y2-y1], positive area and iscrowd=0 because ignored/crowd samples are excluded. Include negative images and preserve the sample-ID mapping. Training YAML exposes only train/val.
 
-COCO export: stable integer image IDs assigned by lexical sample-ID order, category ID = canonical ID+1, bbox=`[x1,y1,x2-x1,y2-y1]`, area from canonical geometry, iscrowd=0 because ignored/crowd samples were excluded. Include all images, even negative images. Persist the ID-map/hash so predictions cannot be evaluated against a different mapping.
+## One run directory
 
-## Run and model bundles
+run.json records:
+- ID/kind/status and timestamps; command argv and project/model source revisions.
+- Source dataset/weights/checkpoint identities and hashes; split/manifests and preprocessing/augmentation.
+- Saved resolved settings and their byte hashes; dependency versions/environment file, interpreter, seed and nondeterminism.
+- Hardware/device, training budget/settings and actual completion; selected checkpoint/epoch/validation rule.
+- Input/output references, actual model head/remapping, expected/processed/failed counts and failure reason if applicable.
 
-`artifacts/runs/<run_id>/run.json` MUST contain schema_version, run_id/kind/status, start/end, parent/resume lineage, command argv, package/source state, resolved configs/hashes, dataset/manifest/class-map identities, initial weight/model identities, environment lock/freeze/interpreter, hardware, seed/determinism, budget/use, outputs, failure/recovery details. Final records cannot omit required reproducibility fields merely because a default was used.
+Save the resolved config, upstream training log/history and weights beside the record. No separate model metadata registry, lifecycle journal, canonical record digest or resume system is required. Refuse output reuse. A stopped run stays interrupted/failed, and a new attempt gets another ID.
 
-`model.json` MUST contain model_id/kind, run/checkpoint/source references, checkpoint SHA-256, head class count/names, canonical mapping/hash, source-to-canonical remap when applicable, selected epoch/fitness and load check, retrieval locator. Model kind is `reference_coco` or `trained_project`. A reference 80-class COCO head filters source IDs 2=car, 0=person, 9=traffic light to project IDs 0,1,2; all other head outputs are excluded. A trained three-class head maps directly. Unknown head metadata is an error, not inferred from filename.
+## Predictions and results
 
-## Prediction bundle
-
-Prediction metadata records prediction_set_id, model/checkpoint/config/profile/manifest hashes, input kind/partition, preprocessing and NMS thresholds/caps, coordinate convention, expected/completed/failed counts, output references and status.
-
-Each JSONL line is one expected image or decoded video frame, including zero-detection cases:
+Each predictions.jsonl line is one image/frame, including empty results:
 
 ```json
-{"schema_version":1,"input_id":"clip-a:000000","frame_index":0,"timestamp_ms":0.0,"width":1280,"height":720,"status":"completed","predictions":[{"detection_id":"d0","class_id":2,"score":0.91,"bbox_xyxy":[100.0,80.0,120.0,140.0]}]}
+{"input_id":"clip-a:000000","frame_index":0,"width":1280,"height":720,"status":"completed","predictions":[{"class_id":2,"score":0.91,"bbox_xyxy":[100.0,80.0,120.0,140.0]}]}
 ```
 
-Images use `sample_id` for manifest inputs and an input identity/hash for independent files; frame_index/timestamp are omitted for still images. Sort input records by manifest order or frame index. Sort detections by descending score, then class ID and box coordinates for ties. Scores must be finite in [0,1]. Failed frames use status=failed with reason and may not masquerade as empty predictions. Preserve source video frame rate/dimensions when supported; disclose re-encoding and validate emitted frame count/readability.
+Still images omit frame_index and use manifest sample_id or independent input identity/hash. Video uses increasing frame indices; retain frame rate/dimensions in run.json. Each prediction uses finite score in [0,1] and a canonical original-coordinate box. Failed input/frame status includes a reason and cannot become a fabricated empty result.
 
-AP-floor predictions and annotated display outputs have separate thresholds in metadata. Evaluation cannot consume a display-filtered set and claim full low-floor AP. Partial prediction sets are not reportable evaluations.
+Metric prediction records retain the AP confidence floor. Annotated display filtering is separate. Reject incomplete evaluation membership.
 
-## Evaluation, timing, and selection bundles
+metrics.json records model/data/config references, partition/counts, evaluator version and definitions, map_50, map_50_95, precision_micro, recall_micro, TP/FP/FN, per-class results, undefined-value reasons, one timing summary and representative-example/limitation references. Undefined values are null with a reason. Never confuse COCO average recall with fixed-threshold recall.
 
-`evaluation.json` MUST contain evaluation_id/purpose/partition, profile/manifest/model/config/prediction hashes, implementation version, matching/IoU/recall/area/maxDet settings, sample/negative/object/per-class counts, metrics, null_reasons, timing reference, selected example references/limitations, status and digest.
+Timing fields: hardware/device/precision, input size/batch, sample-list hash/count, warm-up count, included/excluded stages, synchronized elapsed seconds, mean ms/image and images/s. No stage traces, percentiles or separate timing record are required.
 
-Metrics have named fields `map_50`, `map_50_95`, `precision_micro`, `recall_micro`, `tp`, `fp`, `fn`, and `per_class` keyed by canonical class ID with AP/P/R and counts. Values lie in [0,1] or are null with reasons. COCO average recall must not be mislabeled as operating-point recall. Missing expected classes trigger coverage failure even if an evaluator averages the remaining classes.
+## Human-reviewed comparison and selection
 
-`timing.json` records protocol version, model/config/validation image-list hashes, device/hardware/driver, precision, batch/input size, warm-up count, measured count, stage inclusions, CUDA synchronization policy, per-image/per-stage samples or retrieval reference, median/p95 ms and images/s. Compute-only selection latency and complete wall-time speed are separately named. Throughput is measured count/total measured duration, not an average of instantaneous FPS.
+results/comparison.md records hypothesis, same-model baseline/candidate validation run references, metrics/timing, declared rule, choice/reason and failed attempts. This is a table, not an experiment orchestrator.
 
-`core-gate.json` contains model/profile/config identities and verified setup, preparation, completed baseline, image/video inference, validation/timing/example references. It states whether evidence is real or synthetic/reference-only; only real integrated evidence permits D6/D9.
+Before final testing, results/selected.yaml identifies the chosen checkpoint/path/hash, prepared profile and manifest hashes, saved resolved evaluation config/path/hash, environment file/path/hash, validation run references, reason and recorded time. The saved evaluation config contains inference/metric/device settings; partition, run ID and output paths are separate run arguments, so reusing those settings for test does not change their identity. Test evaluation compares selected fields with actual inputs and rejects setting overrides that differ from the selection. Keep model/data/config/environment identities fixed for an unbiased selected result; disclose later changes and test exposure in ordinary experiment notes/run logs. No core-gate, selection registry or test-exposure file is required.
 
-`comparison.json` contains comparison_id/hypothesis/status, baseline and candidate model/config/eval/timing hashes, common validation membership, budgets, failures, declared rule, chosen configuration and rationale. Incomparable inputs cannot produce an ordinary successful choice.
+## Course/capture notes
 
-`selection.json` contains selection_id, comparison/core-gate references, selected model/inference/evaluator/environment hashes, profile/class map and val/test manifest hashes, deterministic decision, frozen_at and digest. `test-exposure.json` is created before any final evaluation begins and binds selection/test hashes, first exposure time, attempt IDs and outcomes. Final/reproduction records reference it. It is audit state, not an access-control boundary against arbitrary direct file inspection.
+docs/course-deliverables.md tracks all required FR-001–036 owners/status/evidence plus external actions, sources/conflicts, verified dates/timezones, roles, access, links, uploads and Top 10 follow-up. Optional FR-037–039 stay separate. A reported completion fraction names satisfied-count/36 and does not imply an effort percentage.
 
-## Course and optional capture records
+Optional capture metadata belongs in normal experiment notes with input hash, known/unknown camera/scene details, model/settings/results and limits. Unlabeled footage cannot receive an accuracy score.
 
-`docs/course-deliverables.md` uses one row per required FR-001–036 with owner/status/evidence/review date and distinct external-action rows. It includes the original account/hosting conflict, verified resolution, current deadlines/timezones, all contributors/roles, report and presentation/source links, access tests, designated submitter, receipts/comments, and Top 10 follow-up. Optional FR-037–039 are separate. A percentage must name satisfied-count/36 and explain that requirements differ in effort.
-
-Capture JSON records schema_version, capture_id, input path/hash, known/unknown camera and scene metadata, ground-truth availability, model/prediction/evaluation references, observational limitations and optional status. No metric is populated from unlabeled footage.
-
-## Compatibility checks
-
-D1 provides valid/invalid small record examples and validators for shared shapes. D2 checks dataset export/import roundtrips; D3/D4 verify model metadata and mappings; D5 checks evaluation input completeness/hashes and metric semantics; D6 verifies immutable selection and exposure guards. Do not generate elaborate HTTP/OpenAPI scaffolding for this file-based project.
