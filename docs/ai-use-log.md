@@ -77,3 +77,15 @@ do not need to be included.
   requirement ownership, preserved evaluation/data safeguards and constitution compliance.
   All nine deliverables and 39 functional requirements remain. No implementation, dependency
   installation, application tests, training or course submissions occurred.
+
+## 2026-11-05: Dependency-ordered implementation tasks
+
+- Task: Generate tasks from the approved simplified design, grouped into complete PR
+  deliverables with explicit dependencies and limited verification scope.
+- Assistance: Codex used the Spec Kit task setup/template and feature artifacts to draft
+  38 tasks across nine stories, shared setup/foundation and a final handoff audit; retained
+  only focused data/metric tests and one opt-in CPU smoke, with student actions explicit.
+- Verification: Checked task format/IDs/story labels/paths, all 39 requirement owners,
+  dependencies, parallel examples, acceptance checkpoints and removed-scope exclusions.
+  Generated tasks remain unchecked; no implementation, application tests, installations,
+  model runs, messages, permission changes or course submissions were performed.
