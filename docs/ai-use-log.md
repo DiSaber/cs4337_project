@@ -4,6 +4,29 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-05: Phase 2 CLI and shared file helpers (T003)
+
+- Task: Implement the six-command argparse interface and small shared file helpers
+  on the existing `001-driving-object-detection-us1` branch.
+- Assistance: Codex implemented lazy component dispatch, YAML/config persistence,
+  byte SHA-256, safe new-run directories, explicit device resolution and terminal
+  run statuses. Updated README, CLI implementation status and current usage docs.
+- Verification: All 16 requirements checklist items passed. Operational probes
+  with temporary handlers checked paths with spaces, YAML mapping/errors, exact
+  config hashes, run reuse/traversal/reserved-name rejection, preserved handler
+  fields, completed/failed/interrupted statuses and unavailable-CUDA/missing-config
+  failures on Python 3.14.7. Standard-library-only subprocesses verified every help
+  level, accepted/invalid arguments and missing-handler errors on 3.14.7 and 3.10.4.
+  Built a wheel and installed it without dependencies in an isolated local venv;
+  console and module help worked. Git whitespace checks passed and confirmed the
+  US1 branch. Python ignore rules remain adequate; no extension hooks exist.
+- Limitations: Python 3.10.4 lacks PyYAML, so its config/run probes were not completed;
+  an initial operational probe stopped there. Model/device behavior used a fake
+  unavailable CUDA module, not real GPU validation. No model dependencies/assets,
+  training or predictions were installed/run. Component handlers and real environment
+  readiness remain later tasks. Operational probe files/builds stay under ignored
+  `artifacts/`; no extra permanent test suite was added.
+
 ## 2026-11-05: Allow Colab and local Python versions
 
 - Task: Allow user-reported Colab Python 3.13 and the installed local interpreters.

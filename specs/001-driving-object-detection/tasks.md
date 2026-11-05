@@ -34,7 +34,7 @@ description: "Dependency-ordered tasks for the simplified driving-scene detectio
 
 **Purpose**: The small shared file helpers and command dispatch needed by all stories. Depends on T001–T002 and blocks story implementation.
 
-- [ ] T003 Implement ordinary argparse dispatch for the six documented handlers in `src/driving_detection/__main__.py` and only shared config/file/hash/run-directory helpers actually needed in `src/driving_detection/records.py`; support paths with spaces, point-of-use validation, saved resolved settings and byte SHA-256, lazy heavy imports, requested-device failure and clear nonzero errors. Enforce "Do not overwrite existing run directories" and "Use status=completed/failed/interrupted in run.json; a retry gets a new ID"; add no registry, schema framework or lifecycle engine.
+- [X] T003 Implement ordinary argparse dispatch for the six documented handlers in `src/driving_detection/__main__.py` and only shared config/file/hash/run-directory helpers actually needed in `src/driving_detection/records.py`; support paths with spaces, point-of-use validation, saved resolved settings and byte SHA-256, lazy heavy imports, requested-device failure and clear nonzero errors. Enforce "Do not overwrite existing run directories" and "Use status=completed/failed/interrupted in run.json; a retry gets a new ID"; add no registry, schema framework or lifecycle engine.
 
 **Checkpoint**: `python -m driving_detection --help` works without downloading a model or needing CUDA. Unimplemented handlers fail clearly. Config/argument shapes match [CLI](contracts/cli.md) and [file contracts](contracts/records.md); later stories own handler implementations.
 
