@@ -1,6 +1,6 @@
 # CLI Contract
 
-The package exposes `python -m driving_detection` with argument parsing and lazy dispatch for six command handlers. Phase 2 implements the CLI/shared file helpers; component handlers remain later tasks. The full interfaces below remain the implementation contract. See [records](records.md) and [pipeline](pipeline.md).
+The package exposes `python -m driving_detection` with argument parsing and lazy dispatch for six command handlers. CLI/shared helpers and asset sync/readiness are implemented; data/train/infer/evaluate remain later tasks. US1's GPU/teammate acceptance is still pending. The full interfaces below remain the implementation contract. See [records](records.md) and [pipeline](pipeline.md).
 
 ## Shared behavior
 

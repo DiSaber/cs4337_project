@@ -18,6 +18,18 @@ dependencies = [
     "opencv-python>=4.10.0.84,<5",
     "PyYAML>=6.0.2,<7",
     "pycocotools>=2.0.10,<3",
+    # Imported by pinned YOLOv5 v7.0; no optional trackers/export services.
+    "setuptools>=68,<81",
+    "gitpython>=3.1,<4",
+    "ipython>=8,<10",
+    "matplotlib>=3.8,<4",
+    "pandas>=2.2,<3",
+    "psutil>=5.9,<8",
+    "requests>=2.31,<3",
+    "scipy>=1.11,<2",
+    "seaborn>=0.13,<1",
+    "thop>=0.1.1,<1",
+    "tqdm>=4.66,<5",
 ]
 
 [project.optional-dependencies]

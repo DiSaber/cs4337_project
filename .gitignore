@@ -1,5 +1,6 @@
 # Local environments, Python caches and packaging outputs.
 .venv/
+.venv-*/
 venv/
 __pycache__/
 *.py[cod]

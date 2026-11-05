@@ -4,6 +4,33 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-05: US1 asset setup and CPU verification (T005–T006; partial T004/T007)
+
+- Tasks: Define external asset sources/checksums/terms (T005); implement verified
+  acquisition and model readiness (T006). Resolve the local CPU portion of T004
+  and perform the author-run portion of T007; those tasks remain unchecked until
+  actual Colab GPU evidence and independent teammate review exist.
+- Assistance: Codex consulted official BDD/YOLO/PyTorch/Pillow documentation,
+  implemented staged ZIP/file acquisition, receipts/inventory, integrity/reuse and
+  clear recovery errors; added scoped checkpoint/Pillow compatibility adapters.
+  Installed an isolated CPU environment, recorded 57 exact dependencies with wheel
+  hashes/provenance, and wrote setup/reference/evidence docs and a Colab handoff.
+- Verification: All 16 requirements checklist items passed. Official source and
+  weights downloaded and hashed, imports/CPU allocation/NMS/checkpoint head loading
+  passed, repeated sync reused valid model assets, dependency check passed and
+  repeat hashed-lock dry run proposed no installs. Small operational cases checked
+  local import/reuse, checksum/member failures, changed extractions, traversal,
+  links/collisions, interrupted response/retry and failure inventory. A font-sizing
+  check passed. Git ignores bulk assets and environments; upstream source unchanged.
+- Corrections: Fixed Windows staging ACL inheritance, a temporary torch adapter's
+  interaction with upstream wildcard imports, and ZIP original-header validation
+  exposed by Windows filename normalization. Evidence scripts/build outputs remain
+  ignored; no extra permanent test framework or training run was added.
+- Limitations: No BDD archives, Linux GPU runtime, independent teammate verification,
+  training or accuracy/speed evidence. Requested CUDA correctly failed locally.
+  The user will run Colab commands and return evidence; instructions alone do not
+  complete T004/T007 or US1. No course report prose, uploads or external messages.
+
 ## 2026-11-05: Phase 2 CLI and shared file helpers (T003)
 
 - Task: Implement the six-command argparse interface and small shared file helpers

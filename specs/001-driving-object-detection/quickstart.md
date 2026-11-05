@@ -1,6 +1,6 @@
 # Quickstart and Validation Guide
 
-**Status**: Future implementation guide. These commands are agreed interfaces, not evidence of installed code or completed experiments. See [CLI](contracts/cli.md), [files](contracts/records.md), and [pipeline rules](contracts/pipeline.md).
+**Status**: Asset setup/readiness is implemented and author-verified on Windows/Python 3.14.7 CPU. Linux GPU/teammate acceptance remains pending; see [current usage](../../docs/usage.md) and [Colab handoff](../../docs/colab-setup.md). Later data/training/inference/evaluation sections are agreed future interfaces, not completed experiments. See [CLI](contracts/cli.md), [files](contracts/records.md), and [pipeline rules](contracts/pipeline.md).
 
 Run from the repository root. Use the tested CPU environment locally and the tested GPU environment on Linux/Colab. Record actual versions/hardware; dependency targets in the plan still require implementation-time verification.
 
@@ -8,7 +8,7 @@ Run from the repository root. Use the tested CPU environment locally and the tes
 
 Prerequisites: Python 3.10–3.14 (Colab 3.13 and local 3.14.7 / 3.10 are allowed targets), sufficient archive/extraction/output disk space, authorized BDD100K image/Detection 2020 label access, and a compatible NVIDIA GPU for reported training. Official download access may require manual terms/access steps; existing authorized archives are supported.
 
-After D1 supplies tested environment files:
+For the verified Windows CPU profile, `python` must be Python 3.14.7. Other allowed interpreters require their own resolved environment; this lock contains platform/interpreter-specific wheels:
 
 ```powershell
 python -m venv .venv
@@ -23,7 +23,7 @@ Expected: pinned source/official weights and hashes, successful imports/checkpoi
 
 Use `python --version` to identify the interpreter before creating the environment; on Windows `py -3.10` selects the locally registered 3.10 interpreter if desired. The allowed range is not a tested environment matrix.
 
-On Linux/Colab use its Python within the allowed range with an isolated environment, source its bin/activate, install requirements/cuda-lock.txt and the project, then run check with --device cuda:0. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
+For Linux/Colab, follow the [Colab verification handoff](../../docs/colab-setup.md) to resolve the actual GPU environment. `requirements/cuda-lock.txt` is pending that evidence and must not be treated as supplied. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
 
 ## 2. Prepare real data — D2
 

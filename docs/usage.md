@@ -3,7 +3,70 @@
 Run commands from the repository root; relative input/config paths and output
 paths resolve from that workspace. Quote paths containing spaces.
 
-## Current implementation: Phases 1–2
+## Windows CPU setup (verified Python 3.14.7)
+
+The exact tested lock is for Windows amd64/Python 3.14.7. Confirm `python --version`
+before using it; other allowed interpreters need separate resolution/verification.
+From the repository root, use the global pip to populate an isolated environment:
+
+```powershell
+python -m venv --without-pip .venv
+python -m pip --python .venv/Scripts/python.exe install -r requirements/cpu-lock.txt
+python -m pip --python .venv/Scripts/python.exe install --no-deps -e .
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --only model
+.venv/Scripts/python.exe -m driving_detection check --config configs/assets.yaml --device cpu
+```
+
+The author used global pip 26.1.2 (`--python` requires pip 22.3 or later). The
+resolved versions and wheel provenance are in [requirements](../requirements/README.md).
+Repeat sync/check to verify reuse. The check imports libraries, allocates on the
+requested device, checks the torchvision NMS operator and loads the verified
+official 80-class COCO reference model. It does not train or measure accuracy.
+Missing data is reported separately and does not prevent model-only readiness.
+
+For Linux GPU/Colab, use the separate [Colab handoff](colab-setup.md), not this
+Windows lock. That environment and independent teammate review remain pending.
+
+## External assets
+
+Review [sources, licensing and access prerequisites](references.md). Model sync
+downloads only the pinned official source archive and checkpoint. To acquire all
+required inputs, supply authorized BDD100K image and Detection 2020 archives:
+
+```powershell
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_det_20_labels.zip"
+```
+
+The dataset's public download route is not verified available, so its config URLs
+are unset. Running full sync without local archives gives an actionable access
+error. A verified public HTTPS URL can be configured; embedded credentials/signed
+query URLs are rejected. Model SHA-256 pins are measured official-download
+identities; dataset MD5s come from the publisher. Supplied local archives must
+match their declared checksums and expected members.
+
+Outputs are `external/yolov5-v7.0`, `external/weights/yolov5s.pt`,
+`data/raw/images/bdd100k/images/100k/`, and
+`data/raw/labels/bdd100k/labels/det_20/`. `artifacts/assets.json` stores asset
+identities/readiness; `artifacts/asset-receipts/` stores verified receipts.
+Sync stages assets before promotion and refuses existing unverified/changed
+destinations. Repeated sync hashes extracted contents, so checking large data
+still reads the files but does not download duplicates. Python bytecode caches
+are excluded from extracted-content identity.
+
+Download caches live under `external/downloads/`. An interrupted `.part` is
+unverified; retry restarts its download rather than resuming. A corrupt completed
+cache, changed extraction, missing receipt or changed asset definition requires
+manual recovery: preserve/move the affected asset/cache/receipt aside before
+retrying, or use a new configured destination. Do not remove unrelated outputs
+or user-supplied archives. Setup never silently overwrites them. Preserve receipt
+files when transferring verified assets between machines.
+
+Runtime adapters allow the pinned checkpoint loader to use explicit
+`weights_only=False` only for verified official weights and restore Pillow's
+removed font sizing method. Upstream source is unchanged; later training still
+needs its own integration verification.
+
+## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated
 environment without downloading model dependencies:
@@ -24,10 +87,10 @@ python -m driving_detection evaluate --help
 
 On Linux, activate with `source .venv/bin/activate`. The build backend may need
 to be installed by pip. Help needs no torch, CUDA, PyYAML, weights or dataset.
-The six component handlers remain unimplemented; invoking one currently reports
-that fact on stderr and exits 1 without reading configs or creating run outputs.
-Invalid/missing arguments exit 2. Asset setup and tested CPU/GPU dependency locks
-follow in Phase 3; this skeleton-only install is not model readiness evidence.
+Asset sync and readiness check are implemented. Data/train/infer/evaluate still
+report an unimplemented-handler error and exit 1 without reading configs or
+creating run outputs. Invalid/missing arguments exit 2. The package-only install
+above is enough for help, but model readiness requires the full runtime setup.
 
 ## Shared behavior for component implementation
 
@@ -55,5 +118,6 @@ in ignored `artifacts/`. Keep secrets out of configs and command arguments, whic
 may be preserved in run records. Track small configs and results/retrieval notes.
 
 The [future quickstart](../specs/001-driving-object-detection/quickstart.md)
-describes the later pipeline interfaces and checks. Model acquisition, training,
-predictions, evaluation results and full runtime compatibility are not yet verified.
+describes the later pipeline interfaces and checks. Local CPU model acquisition
+and loading have been verified; training, predictions, evaluation and Linux GPU
+compatibility are not yet verified.
