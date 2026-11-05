@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "driving-detection"
+version = "0.1.0"
+description = "Three-class driving-scene object detection for CS4337."
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+# Allow interpreter-compatible releases; tested exact environment locks follow in D1.
+# Pinned YOLOv5 source and weights are acquired separately, outside this package.
+dependencies = [
+    "torch>=2.5.1,<3",
+    "torchvision>=0.20.1,<1",
+    "numpy>=1.26.4,<3",
+    "Pillow>=9.5.0,<13",
+    "opencv-python>=4.10.0.84,<5",
+    "PyYAML>=6.0.2,<7",
+    "pycocotools>=2.0.10,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3.5,<10"]
+
+[project.scripts]
+driving-detection = "driving_detection.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

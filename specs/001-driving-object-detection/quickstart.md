@@ -6,12 +6,12 @@ Run from the repository root. Use the tested CPU environment locally and the tes
 
 ## 1. Setup — D1
 
-Prerequisites: Python 3.11, sufficient archive/extraction/output disk space, authorized BDD100K image/Detection 2020 label access, and a compatible NVIDIA GPU for reported training. Official download access may require manual terms/access steps; existing authorized archives are supported.
+Prerequisites: Python 3.10–3.14 (Colab 3.13 and local 3.14.7 / 3.10 are allowed targets), sufficient archive/extraction/output disk space, authorized BDD100K image/Detection 2020 label access, and a compatible NVIDIA GPU for reported training. Official download access may require manual terms/access steps; existing authorized archives are supported.
 
 After D1 supplies tested environment files:
 
 ```powershell
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements/cpu-lock.txt
 python -m pip install --no-deps -e .
@@ -21,7 +21,9 @@ python -m driving_detection check --config configs/assets.yaml --device cpu
 
 Expected: pinned source/official weights and hashes, successful imports/checkpoint load, readable device/readiness report. Dataset readiness is separate from model-only readiness. Repeat setup to verify valid assets are reused and earlier outputs preserved; check an interrupted/invalid small download fixture recovers or fails clearly.
 
-On Linux/Colab use Python 3.11 with an isolated environment, source its bin/activate, install requirements/cuda-lock.txt and the project, then run check with --device cuda:0. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
+Use `python --version` to identify the interpreter before creating the environment; on Windows `py -3.10` selects the locally registered 3.10 interpreter if desired. The allowed range is not a tested environment matrix.
+
+On Linux/Colab use its Python within the allowed range with an isolated environment, source its bin/activate, install requirements/cuda-lock.txt and the project, then run check with --device cuda:0. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
 
 ## 2. Prepare real data — D2
 

@@ -1,0 +1,44 @@
+# Local environments, Python caches and packaging outputs.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Large external inputs and generated outputs; configs/ and results/ stay tracked.
+/data/
+/external/
+/artifacts/
+*.pt
+*.pth
+*.onnx
+
+# Credentials and machine-local secrets.
+.env
+.env.*
+!.env.example
+.aws/
+credentials/
+secrets/
+*.pem
+*.key
+
+# Editor, notebook, operating-system and temporary files.
+.vscode/
+.idea/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# Spec Kit's existing .specify/.gitignore owns machine-local feature state.

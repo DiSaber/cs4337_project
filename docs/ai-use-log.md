@@ -4,6 +4,39 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-05: Allow Colab and local Python versions
+
+- Task: Allow user-reported Colab Python 3.13 and the installed local interpreters.
+- Assistance: Codex changed package metadata to Python >=3.10,<3.15 and bounded
+  dependency ranges, updated README/plan/tasks/quickstart, and recorded the runtime
+  revision and primary compatibility sources in research. D1 must resolve exact
+  environment locks and handle modern torch/Pillow integration with pinned YOLO.
+- Verification: Observed local Python 3.14.7 and launcher Python 3.10.4. Built the
+  package wheel with Python 3.14.7 without installing dependencies; checked metadata
+  accepts 3.10–3.14 and excludes 3.9/3.15, parsed dependency requirements, and imported
+  the package on both installed interpreters. No extension hooks are configured.
+- Limitations: Colab 3.13 was reported by the user, not inspected remotely. Full
+  dependency resolution, checkpoint loading and pipeline smoke remain D1/later
+  integration work. Package build/import checks do not establish model compatibility.
+
+## 2026-11-05: Phase 1 package and ignore rules (T001–T002)
+
+- Task: Initialize the Python 3.11 package metadata (T001) and protect local
+  assets, outputs, credentials and caches from Git (T002).
+- Assistance: Codex added setuptools metadata, the planned dependency pins and
+  CLI entry point, a package initializer, root ignore rules and README status/path
+  guidance on branch `001-driving-object-detection-phase-1`.
+- Verification: Parsed metadata with Python's TOML reader, imported the package,
+  and checked setuptools package discovery. Used Git to verify ignored asset,
+  environment, credential/cache and `.specify/feature.json` paths; confirmed
+  configs, results, example environment and package files remain trackable.
+  Git whitespace checks passed. The requirements checklist passed all 16 items;
+  no extension hook configuration exists.
+- Limitations: Available interpreters were Python 3.14.7 and 3.10, not the target
+  Python 3.11. No dependency installation or runtime compatibility claim was made;
+  tested environment locks remain T004. CLI dispatch is T003, so the declared
+  entry point is not runnable yet. No training or model/data downloads occurred.
+
 ## 2026-11-05: Default agent instructions
 
 - Task: Add repository instructions directing coding agents to the constitution, feature

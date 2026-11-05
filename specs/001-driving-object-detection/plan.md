@@ -12,15 +12,15 @@ Use ordinary functions, a few configuration files, and small run records. Core a
 
 ## Technical Context
 
-**Language/Version**: Python 3.11; record the actual interpreter build.
+**Language/Version**: Allow Python 3.10–3.14, including user-reported Colab 3.13 and observed local 3.14.7 / 3.10. Record the actual interpreter build; allowed metadata is not full pipeline verification.
 
-**Primary Dependencies**: YOLOv5 v7.0 source commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; initial compatibility targets torch 2.5.1 / torchvision 0.20.1, numpy 1.26.4, Pillow 9.5.0, opencv-python 4.10.0.84, PyYAML 6.0.2, pycocotools 2.0.10, pytest 8.3.5. D1 verifies imports/checkpoint loading and records tested environment versions; these pins have not been installed or tested during planning. Disable upstream automatic installation and unrequested external trackers. Preserve licenses and citations.
+**Primary Dependencies**: YOLOv5 v7.0 source commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; package bounds are torch >=2.5.1,<3, torchvision >=0.20.1,<1, numpy >=1.26.4,<3, Pillow >=9.5.0,<13, opencv-python >=4.10.0.84,<5, PyYAML >=6.0.2,<7, pycocotools >=2.0.10,<3, and optional pytest >=8.3.5,<10. Resolve a matched torch/torchvision pair with wheels for the actual interpreter/device; do not force the old Python-3.11 pins onto newer interpreters. D1 verifies imports/checkpoint loading and records exact tested environment locks. Address modern torch checkpoint-loading defaults and removed Pillow APIs at the pinned YOLO integration points, then verify training in the connected smoke test. Disable upstream automatic installation and unrequested external trackers. Preserve licenses and citations.
 
 **Storage**: Local files. Ignore `data/`, `external/`, `artifacts/` and credentials. Track configurations, compact summaries, references, and instructions to retrieve team-accessible large artifacts. Hash assets, dataset manifests, checkpoints and saved resolved configs for identity; do not build a linked graph of record digests.
 
 **Testing**: Focused data-integrity and metric-correctness tests, plus one opt-in CPU pipeline smoke test. Small fixtures are private test helpers. No separate contract-test layer, public fixture generator, model-architecture tests, or repeated training as a routine PR check.
 
-**Target Platform**: Single NVIDIA GPU/Linux or Colab for reported training; local Windows CPU setup/smoke checks. User confirmed this target. CUDA 12.1 is an initial installation profile subject to actual GPU/driver compatibility. Keep a tested environment file for each execution platform used, without a broad cross-platform CI matrix.
+**Target Platform**: Single NVIDIA GPU/Linux or Colab for reported training; local Windows CPU setup/smoke checks. User confirmed this target. Choose the CUDA wheel profile for the resolved torch version and actual GPU/driver; CUDA 12.1 was the original Python-3.11 proposal, not a fixed requirement. Keep a tested environment file for each execution platform used, without a broad cross-platform CI matrix.
 
 **Project Type**: One CLI package with six commands: assets sync, check, data prepare, train, infer, evaluate. No web service/database.
 
