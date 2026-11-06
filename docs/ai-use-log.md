@@ -4,6 +4,26 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-05: Accept supplied Colab setup evidence (T004/T007)
+
+- Task: Review the user's Colab evidence, finalize the CUDA environment records,
+  and close the remaining US1 setup acceptance items.
+- Assistance: Codex compared first/repeated GPU readiness and asset identities,
+  reconciled the freeze file with installed inspection and initial install reports,
+  produced a 74-dependency hashed CUDA lock/provenance, preserved a compact evidence
+  record and updated setup documentation/task status. Marc Benamou confirmed review
+  completion in this session.
+- Verification: Confirmed both checks completed on Python 3.13.16/Tesla T4/CUDA
+  12.8, matching pinned source/checkpoint hashes and unchanged Colab asset records.
+  Every frozen external package has matching installed/report versions. Reused
+  two identical official generic-wheel hashes from CPU provenance and fetched the
+  recorded Linux MarkupSafe wheel to measure its missing hash. Original evidence
+  remains unchanged; raw copies stay ignored and compact records preserve file hashes.
+- Limits: GPU execution was performed in the supplied Colab session, not locally.
+  Review completion is user-attested; the bundle lacks separate reviewer/console
+  result-preservation logs. The finalized lock has not been reinstalled in another
+  runtime. No training, data preparation or measured model results are claimed.
+
 ## 2026-11-05: US1 asset setup and CPU verification (T005–T006; partial T004/T007)
 
 - Tasks: Define external asset sources/checksums/terms (T005); implement verified

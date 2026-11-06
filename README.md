@@ -9,16 +9,18 @@ local CPU environment. See [usage](docs/usage.md), [asset sources/terms](docs/re
 and [setup evidence](results/experiments.md). Data preparation, training, inference
 and evaluation handlers remain later tasks.
 
-US1 is partially complete: the Linux GPU lock and teammate acceptance require
-the [Colab verification steps](docs/colab-setup.md). The existing US1 branch covers
-Phases 1–3; local readiness is not full pipeline or course completion.
+US1 setup is complete through Phase 3: CPU and Colab GPU readiness evidence and
+Marc Benamou's confirmed review are recorded. See the
+[Colab setup steps](docs/colab-setup.md). Data preparation and the rest of the
+pipeline remain later phases; setup acceptance is not full course completion.
 
 The allowed runtime range is Python 3.10–3.14, including Colab's reported 3.13
 and the local Python 3.14.7 / 3.10 interpreters. Dependency ranges in
 `pyproject.toml` allow pip to select releases for the chosen interpreter; they are
 not a verified environment lock or evidence of full pipeline compatibility.
 The [CPU lock](requirements/cpu-lock.txt) is specific to Windows/Python 3.14.7;
-the CUDA lock awaits actual Colab verification. See the
+the [CUDA lock](requirements/cuda-lock.txt) records verified Colab/Python 3.13.16
+on a Tesla T4 with CUDA 12.8. See the
 [future quickstart](specs/001-driving-object-detection/quickstart.md) for later
 pipeline interfaces; its training/data/evaluation commands are not implemented yet.
 

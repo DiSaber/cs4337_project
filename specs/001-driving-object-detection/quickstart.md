@@ -1,6 +1,6 @@
 # Quickstart and Validation Guide
 
-**Status**: Asset setup/readiness is implemented and author-verified on Windows/Python 3.14.7 CPU. Linux GPU/teammate acceptance remains pending; see [current usage](../../docs/usage.md) and [Colab handoff](../../docs/colab-setup.md). Later data/training/inference/evaluation sections are agreed future interfaces, not completed experiments. See [CLI](contracts/cli.md), [files](contracts/records.md), and [pipeline rules](contracts/pipeline.md).
+**Status**: Asset setup/readiness is accepted on Windows/Python 3.14.7 CPU and Colab/Python 3.13.16/Tesla T4 CUDA 12.8, with supplied GPU evidence and Marc Benamou's confirmed review; see [current usage](../../docs/usage.md) and [Colab handoff](../../docs/colab-setup.md). Later data/training/inference/evaluation sections are agreed future interfaces, not completed experiments. See [CLI](contracts/cli.md), [files](contracts/records.md), and [pipeline rules](contracts/pipeline.md).
 
 Run from the repository root. Use the tested CPU environment locally and the tested GPU environment on Linux/Colab. Record actual versions/hardware; dependency targets in the plan still require implementation-time verification.
 
@@ -23,7 +23,7 @@ Expected: pinned source/official weights and hashes, successful imports/checkpoi
 
 Use `python --version` to identify the interpreter before creating the environment; on Windows `py -3.10` selects the locally registered 3.10 interpreter if desired. The allowed range is not a tested environment matrix.
 
-For Linux/Colab, follow the [Colab verification handoff](../../docs/colab-setup.md) to resolve the actual GPU environment. `requirements/cuda-lock.txt` is pending that evidence and must not be treated as supplied. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
+For Linux/Colab, follow the [Colab verification handoff](../../docs/colab-setup.md) to resolve the actual GPU environment. `requirements/cuda-lock.txt` now records the accepted Colab environment; use it only with its matching Linux/Python profile. Confirm the actual GPU/driver works; never silently fall back to CPU. Preserve outputs outside ephemeral notebook storage. No training probe is duplicated in setup.
 
 ## 2. Prepare real data — D2
 

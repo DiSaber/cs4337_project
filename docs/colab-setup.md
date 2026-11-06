@@ -1,8 +1,9 @@
 # US1 Colab verification handoff
 
-Status: **not run here**. The user selected Colab for the Linux GPU and teammate
-checks. T004's GPU lock and T007's independent acceptance remain pending actual
-results. These steps check setup/checkpoint readiness only; they do not train.
+Status: **verified from the supplied Colab evidence** on 2026-11-05: Python
+3.13.16, Tesla T4, torch 2.9.1+cu128/torchvision 0.24.1+cu128. Both readiness
+checks passed; Marc Benamou confirmed review completion. See
+[evidence](../results/experiments.md). These steps check setup/loading, not training.
 
 Select a GPU runtime in Colab. Use Python 3.10–3.14; record the actual version
 rather than assuming Colab still supplies 3.13. First make this implementation
@@ -24,12 +25,24 @@ subprocess.run(['git', 'status', '--short', '--branch'], check=True)
 ```
 
 Confirm the checkout includes `configs/assets.yaml` and `assets.py`. The following
-CUDA 12.8 profile is an **unverified starting point** from the
+CUDA 12.8 profile passed the supplied checks and comes from the
 [official PyTorch version table](https://pytorch.org/get-started/previous-versions/).
 It uses a matched torch/torchvision pair compatible with Python 3.13. Actual
 driver/GPU compatibility must pass `check`; if it fails, retain the failure and
 choose a documented official profile for the provided hardware. Do not fall back
 to CPU and label it GPU verification. Do not use the Windows CPU lock here.
+
+To reproduce the recorded environment, replace the two install commands below
+with these commands, keeping the readiness/reuse checks:
+
+```bash
+python -m pip --python .venv-colab/bin/python install -r requirements/cuda-lock.txt
+python -m pip --python .venv-colab/bin/python install --no-deps -e .
+```
+
+The finalized hashed lock has been checked against the supplied installation
+records; a separate reinstall of that exact lock has not been run. The original
+resolution commands below document how the accepted environment was obtained.
 
 ```bash
 %%bash
@@ -79,9 +92,9 @@ Repetition must print reuse messages and keep the same source/checkpoint hashes.
 Pip reports preserve wheel origins/hashes from the initial resolution; retain
 them even if repeated pip installs later produce empty reports. The freeze file
 is evidence for a future `requirements/cuda-lock.txt`, not an already reviewed
-GPU lock. Finalize that lock against the successful installation's wheel records
-and actual interpreter/device, then have a teammate reproduce it in a fresh Colab
-session. Record reviewer name/date, fresh/repeat outcomes, any existing result
+GPU lock. The returned freeze/install evidence has now been reviewed and finalized
+as `requirements/cuda-lock.txt`. For future reruns, retain reviewer name/date,
+fresh/repeat outcomes, any existing result
 files preserved, and failures/recovery in `results/experiments.md`. The teammate
 must actually perform/review these steps; generated notes cannot satisfy T007.
 

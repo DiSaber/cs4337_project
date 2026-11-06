@@ -56,6 +56,7 @@ External trackers, export packages and TensorBoard are not required by this setu
 and [Pillow API removals](https://pillow.readthedocs.io/en/stable/deprecations.html).
 
 `requirements/cpu-lock.txt` and `cpu-wheels.json` preserve the actual local CPU
-versions and wheel URLs/SHA-256. A Colab CUDA lock requires actual GPU verification;
-see [the handoff](colab-setup.md). Record environment changes before comparisons.
+versions and wheel URLs/SHA-256. `requirements/cuda-lock.txt` and `cuda-wheels.json`
+record the verified Colab GPU environment; see [setup steps](colab-setup.md).
+Record environment changes before comparisons.
 Future metrics use [pycocotools](https://github.com/cocodataset/cocoapi/tree/master/PythonAPI).

@@ -11,8 +11,16 @@ compatibility claim. Other allowed Python versions need their own environment
 resolution and readiness check. The original Python-3.11 targets were superseded
 when the user authorized the locally installed interpreters and Colab 3.13.
 
-`cuda-lock.txt` has not been created: no Linux GPU runtime was available to verify
-an actual environment. Follow the [Colab instructions](../docs/colab-setup.md),
-return the real environment evidence, then finalize that lock with exact versions
-and wheel provenance. T004 remains partially complete until then; never install
-the Windows CPU lock in Colab.
+`cuda-lock.txt` records the supplied, successful **Colab Linux x86_64 / Python
+3.13.16 / Tesla T4 / CUDA 12.8** environment: 74 external distributions with exact
+wheel URLs and SHA-256. `cuda-wheels.json` preserves the corresponding provenance.
+The dependency set matches both the freeze file and installed-package inspection;
+versions/origins come from the initial pip reports. Two missing generic-wheel
+hashes reuse identical official wheel records from CPU setup; the Linux MarkupSafe
+wheel hash was measured from its official recorded URL during evidence review.
+
+Follow the [Colab instructions](../docs/colab-setup.md) to reproduce it; never
+install the Windows CPU lock in Colab or the Linux CUDA lock on Windows. The lock
+captures a GPU environment that passed first/repeated readiness checks; reinstalling
+the finalized lock in another Colab runtime has not been separately performed.
+This is setup evidence, not training or broader GPU compatibility evidence.

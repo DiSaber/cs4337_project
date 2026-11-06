@@ -2,7 +2,7 @@
 
 ## 2026-11-05: US1 local CPU setup
 
-Status: **author-verified local setup; US1 acceptance pending Colab/teammate**.
+Status: **author-verified local setup; US1 acceptance completed with the Colab evidence and review recorded below**.
 No training, predictions, accuracy measurements or speed benchmarks were run.
 
 | Item | Observed result |
@@ -51,14 +51,53 @@ artifact upload has occurred. Teammates can reacquire model assets from the pinn
 public config; the tracked CPU lock/wheel records preserve dependency identities.
 BDD archives require authorized access as described in [references](../docs/references.md).
 
-## Remaining US1 acceptance
+## 2026-11-05: Supplied Colab GPU evidence and US1 acceptance
 
-- T004: CPU lock/provenance complete; Linux GPU environment and `cuda-lock.txt`
-  pending actual Colab verification. No speculative CUDA lock is supplied.
-- T007: Author CPU fresh/repeat and operational recovery checks complete;
-  independent teammate review and real Linux GPU check pending. The user selected
-  Colab and requested [commands to run](../docs/colab-setup.md). Return its evidence
-  bundle and reviewer notes before marking T004/T007 complete.
-- No real dataset acquisition or preparation is claimed. Data preparation is US2.
-- Preserve any failed Colab setup, actual hardware/driver, interpreter, wheel
-  provenance, successful readiness outputs and independent reviewer identity/date.
+Status: **accepted setup evidence; T001–T007 complete**. Marc Benamou confirmed
+review completion in this session. The supplied bundle contains machine evidence;
+review completion is a user attestation, not a separate signed reviewer document.
+
+| Item | Supplied evidence |
+| --- | --- |
+| Project revision | `67833246d48678336e5ebef0b8b33ee9fae88c24` |
+| Platform/interpreter | Linux x86_64, glibc 2.39, Python 3.13.16 (GCC 13.3.0) |
+| GPU/driver | Tesla T4, 15,360 MiB; NVIDIA driver 580.82.07 |
+| CUDA | torch runtime 12.8; nvidia-smi reports driver capability 13.0 |
+| Matched model libraries | torch 2.9.1+cu128 / torchvision 0.24.1+cu128 |
+| First GPU readiness | `completed`, device `cuda:0`, 80-class reference checkpoint; 23:47:38 UTC |
+| Repeated GPU readiness | `completed`, same device/head/settings/hardware; 23:50:43 UTC |
+| Asset reuse/integrity | Both asset records identical; source/weight SHA-256 match project pins; source tree hash stable within Colab |
+| Exact dependencies | 74 external distributions agree between freeze and installed inspection, with matching initial install-report records |
+| Reviewer | Marc Benamou; review complete, confirmed by the user |
+| Dataset | Images/labels absent in both checks; correctly separate from model readiness |
+
+`requirements/cuda-lock.txt` now captures exact platform wheel URLs and SHA-256;
+`cuda-wheels.json` preserves the provenance. The reports omitted hashes for three
+wheels: Jinja2/setuptools use the same immutable URLs/hashes as the accepted CPU
+record; Linux MarkupSafe was fetched from its recorded official URL to measure
+its missing hash. Every final frozen dependency has a matching version and wheel
+record. No Linux CUDA packages were installed on Windows to claim this validation.
+
+The readiness `installed` list also exposes setuptools-vendored distributions
+and duplicate project/version entries after upstream imports. The lock uses the
+74 actual external distributions agreed by `cuda-freeze.txt` and pip's installed
+inspection, rather than incorrectly treating those vendored entries as separately
+installed packages. Windows/Colab extracted tree hashes use native path ordering
+and are not compared across platforms; archive/checkpoint byte hashes match.
+
+The compact [Colab evidence record](us1-colab-evidence.json) preserves readiness,
+asset/hardware identities, user-confirmed review and SHA-256/size for every supplied
+file. Original files were copied byte-for-byte to ignored
+`artifacts/us1-colab-evidence/`; the supplied originals remain at
+`C:/Users/Marc/Downloads/us1-colab-evidence/colab-evidence/`. No separate
+team-accessible upload has been performed. Share that original small bundle or
+use the tracked compact record and lock/provenance for repository review.
+Reproduction commands are in [Colab setup](../docs/colab-setup.md).
+
+Limits: the bundle does not include console reuse logs or a separate result-file
+preservation log; acceptance combines stable asset/readiness records, earlier
+local operational checks and the user's completed-review confirmation. The final
+hashed CUDA lock was derived and checked against the accepted installation, not
+reinstalled in another fresh Colab runtime. Training compatibility still requires
+the later connected smoke; no dataset preparation, trained baseline, accuracy or
+speed measurements are claimed. US2 and later task markers remain unchecked.

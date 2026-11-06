@@ -24,8 +24,10 @@ requested device, checks the torchvision NMS operator and loads the verified
 official 80-class COCO reference model. It does not train or measure accuracy.
 Missing data is reported separately and does not prevent model-only readiness.
 
-For Linux GPU/Colab, use the separate [Colab handoff](colab-setup.md), not this
-Windows lock. That environment and independent teammate review remain pending.
+For Linux GPU/Colab, use the separate [Colab setup instructions](colab-setup.md),
+not this Windows lock. Python 3.13.16/Tesla T4/CUDA 12.8 passed both readiness
+checks; Marc Benamou confirmed review completion. Its exact environment is now
+recorded in `requirements/cuda-lock.txt` and `cuda-wheels.json`.
 
 ## External assets
 
@@ -59,7 +61,9 @@ cache, changed extraction, missing receipt or changed asset definition requires
 manual recovery: preserve/move the affected asset/cache/receipt aside before
 retrying, or use a new configured destination. Do not remove unrelated outputs
 or user-supplied archives. Setup never silently overwrites them. Preserve receipt
-files when transferring verified assets between machines.
+files when transferring verified assets between matching platforms. Extracted
+tree hashes use native path ordering and can differ across Windows/Linux; transfer
+the pinned archives and sync them anew when changing platforms.
 
 Runtime adapters allow the pinned checkpoint loader to use explicit
 `weights_only=False` only for verified official weights and restore Pillow's
@@ -119,5 +123,5 @@ may be preserved in run records. Track small configs and results/retrieval notes
 
 The [future quickstart](../specs/001-driving-object-detection/quickstart.md)
 describes the later pipeline interfaces and checks. Local CPU model acquisition
-and loading have been verified; training, predictions, evaluation and Linux GPU
-compatibility are not yet verified.
+and loading have been verified on the recorded Windows CPU and Colab GPU profiles;
+training, predictions, evaluation and other runtime profiles are not yet verified.
