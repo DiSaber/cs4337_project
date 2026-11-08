@@ -4,6 +4,27 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-07: Bash setup and constitution merge
+
+- Task: Add Bash support without overwriting project work, retain PowerShell references
+  for the team, and fold the supplied senior-year constitution into this project's rules.
+- Assistance: Codex initialized Spec Kit 1.0.13 in a temporary copy, reviewed the diff,
+  copied the generated Bash scripts and integration changes, and kept both platform
+  commands in shared skills and repository guidance. Merged the supplied v1.1.0 rules
+  into project constitution v2.0.0 while preserving experiment and course requirements.
+- Verification: Initialization preserved the existing constitution and templates;
+  reviewed changed files before copying. Bash template resolution and active-feature
+  discovery succeeded. Integration status confirmed complete managed files; the nine
+  skills are intentional customizations to retain both platform commands. Reviewed the
+  merged rules against both source documents and checked the change for whitespace.
+- Review: Removed the temporary constitution review comment before staging. Confirmed
+  unrelated changes contain only line-ending differences and left them unstaged.
+- Limits: PowerShell execution was not checked because pwsh is unavailable. No pipeline
+  execution, new tests, commits, or submissions. Reconcile the active feature's plan,
+  tasks, and quickstart with Principle VII before implementing automated test/fixture
+  instructions, including T008, T012, T019, and T022. Preserve required model evaluation
+  and experiment evidence.
+
 ## 2026-11-05: Accept supplied Colab setup evidence (T004/T007)
 
 - Task: Review the user's Colab evidence, finalize the CUDA environment records,
