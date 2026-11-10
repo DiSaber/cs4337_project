@@ -118,7 +118,10 @@ defaults or overrides. The CLI starts the record with `status=started` and write
 Failures include a reason and exit nonzero; Ctrl+C exits 130.
 
 Large inputs belong in ignored `data/` and `external/`; generated outputs belong
-in ignored `artifacts/`. Keep secrets out of configs and command arguments, which
+in ignored `artifacts/`. If the checkout sits inside a Syncthing (or similar) synced
+folder, exclude these folders from syncing before downloading anything; Git ignore
+rules do not affect sync tools. Archives (`*.zip`, `*.tar*`, `*.7z`) and video
+(`*.mp4`, `*.avi`, `*.mov`, `*.mkv`) are Git-ignored anywhere in the tree. Keep secrets out of configs and command arguments, which
 may be preserved in run records. Track small configs and results/retrieval notes.
 
 The [future quickstart](../specs/001-driving-object-detection/quickstart.md)

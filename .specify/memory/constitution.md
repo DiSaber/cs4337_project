@@ -48,7 +48,9 @@ projects, extension, or maintenance after delivery.
 
 Setup, inputs, outputs, and execution steps MUST be documented, and team members MUST
 understand and be able to explain submitted code.
-Datasets, checkpoints, credentials, and large generated outputs MUST stay out of Git.
+Datasets, checkpoints, credentials, and large generated outputs MUST stay out of Git and out
+of file-sync tools such as Syncthing. Add the Git and sync ignore rules for a new large-data
+location BEFORE downloading or generating anything there, so nothing starts syncing.
 Required external assets MUST have documented acquisition instructions and an automated
 setup mechanism, such as a download script. Setup SHOULD be idempotent: rerunning it reuses
 valid existing assets without duplicate downloads or destructive changes. Any unavoidable
@@ -73,11 +75,12 @@ unexecuted work MUST NOT be reported as passing.
 
 ### VIII. Small Changes and User Review
 
-Work MUST proceed in small, coherent changes suitable for individual commits. At each
-review checkpoint, present the changed files, what changed, available execution evidence,
-and a suggested commit message. Then stop until the user authorizes continuing. A workflow
-that normally executes all tasks MUST still honor these stops. Commits MUST remain under
-user control unless explicitly delegated.
+Work MUST proceed in small, coherent changes suitable for individual commits. Continue
+through tasks without stopping for review between them. Stop for user review only when a
+set of changes is ready to commit: present the changed files, what changed, available
+execution evidence, and a suggested commit message, then wait until the user commits or
+authorizes continuing. Do not let uncommitted work grow past one coherent commit; stop at
+the commit point first. Commits MUST remain under user control unless explicitly delegated.
 
 ### IX. Useful, Temporary Explanations
 
@@ -137,8 +140,8 @@ training is required only when needed to validate the change or support a report
 Reported experiments MUST retain the records required by Principles I, II, and IV. Blockers
 and incomplete work MUST be reported plainly.
 
-Use the specification's review checkpoints when provided. Otherwise, complete one bounded
-change and stop for user review before beginning another. Preserve unrelated user changes.
+Stop for user review at commit points as described in Principle VIII, not after every task
+or specification checkpoint. Preserve unrelated user changes.
 Before final delivery, review explanations with the user and confirm that reported results
 match actual outputs. Sharing, submission, and publication require separate authorization.
 
@@ -158,4 +161,12 @@ principles, MINOR for new principles or materially expanded guidance, and PATCH 
 clarifications that do not change obligations. The original ratification date MUST be
 preserved, and the last amended date MUST reflect the latest adopted change.
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-07
+**Amendment 2.1.0 (2026-11-10)**: At user direction, Principle VIII and the workflow section
+now require review stops only at commit points instead of after every task, so work can
+move faster. Principle V now also requires keeping large data out of file-sync tools and
+adding ignore rules before downloads. Affected principles: V, VIII and the Development
+Workflow section. MINOR because the stop rule is relaxed and V is expanded without removing
+any principle. Follow-up: Syncthing ignore rules were added for `data/`, `external/`,
+`artifacts/` and `build/` in the College folder's `.stignore`.
+
+**Version**: 2.1.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-10

@@ -4,6 +4,21 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: Constitution 2.1.0 and large-data sync exclusions
+
+- Task: At user direction, limit review stops to commit points, and keep large data
+  out of Git and Syncthing before any downloads.
+- Assistance: Claude Code amended Principle V, Principle VIII and the workflow
+  section (version 2.1.0, with an amendment record). It added archive/video
+  patterns to `.gitignore`, a sync note to `docs/usage.md`, and project
+  `data/`, `external/`, `artifacts/` and `build/` rules to the College folder's
+  Syncthing `.stignore` (outside this repository).
+- Verification: Syncthing's local REST API (`/rest/db/ignores`) returned the new
+  patterns for the College folder with no parse error. Confirmed no tracked file
+  matches the new Git patterns.
+- Limits: Files already synced to other devices before this change stay there;
+  Syncthing does not delete ignored files remotely.
+
 ## 2026-11-10: US1 merge review and Principle VII reconciliation
 
 - Task: Review the spec and US1 implementation for merge to `main`; resolve the
