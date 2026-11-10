@@ -4,6 +4,17 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: D3 training configs (T013)
+
+- Task: Write `configs/train/baseline.yaml` and `configs/train/smoke.yaml`.
+- Assistance: Claude Code wrote them from the pipeline contract and the pinned
+  `hyp.scratch-low.yaml`.
+- Verification: A YAML comparison showed smoke differs from baseline only in epochs,
+  image size and batch, and baseline differs from upstream hyperparameters only in the
+  disabled translate/scale/mosaic augmentations. In the pinned source, `patience: 0`
+  disables early stopping and a strict `fi > best_fitness` keeps the earliest epoch on
+  ties. No training has been run yet; the wrapper (T014) consumes these files.
+
 ## 2026-11-10: Cheap asset reuse check
 
 - Task: At user request, stop re-hashing every extracted file each time large data

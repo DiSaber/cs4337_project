@@ -1,0 +1,49 @@
+# Declared GPU baseline (contracts/pipeline.md "Training and inference").
+# Values are passed to pinned YOLOv5 v7.0 train.py; the run saves this file resolved.
+device: cuda:0
+weights: external/weights/yolov5s.pt   # official COCO-pretrained initial weights
+imgsz: 640
+batch: 8                 # pre-run fallback only: 4, then 2 (record the choice in run.json)
+batch_fallbacks: [4, 2]
+epochs: 20
+workers: 0
+seed: 4337
+budget_gpu_hours: 8      # includes per-epoch validation; exceeding it = interrupted run
+optimizer: SGD
+noautoanchor: true
+# Upstream EarlyStopping treats 0 as "never stop", so all 20 epochs run.
+patience: 0
+# Checkpoint choice is upstream validation fitness 0.1*AP50 + 0.9*AP50:95.
+# train.py keeps best only when fitness is strictly higher, so ties keep the earliest epoch.
+hyp:
+  # Optimizer/schedule (stated in the contract).
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  warmup_epochs: 3.0
+  # Remaining values copied from pinned data/hyps/hyp.scratch-low.yaml.
+  warmup_momentum: 0.8
+  warmup_bias_lr: 0.1
+  box: 0.05
+  cls: 0.5
+  cls_pw: 1.0
+  obj: 1.0
+  obj_pw: 1.0
+  iou_t: 0.20
+  anchor_t: 4.0
+  fl_gamma: 0.0
+  # Augmentation: horizontal flip and HSV only; everything else off.
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 0.0
+  translate: 0.0
+  scale: 0.0
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 0.0
+  mixup: 0.0
+  copy_paste: 0.0
