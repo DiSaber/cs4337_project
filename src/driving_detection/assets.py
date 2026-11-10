@@ -51,8 +51,11 @@ def _definition(settings: dict, name: str) -> dict:
             raise ValueError(f"Invalid {key} checksum for {name}.")
     if asset.get("url"):
         url = urlsplit(asset["url"])
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
-            raise ValueError("Use public HTTPS URLs without credentials or signed query strings.")
+        # Plain HTTP is accepted only with a pinned SHA-256: the hash, not the
+        # transport, proves the bytes. BDD's author-hosted mirror has no valid HTTPS.
+        secure = url.scheme == "https" or (url.scheme == "http" and asset.get("sha256"))
+        if not secure or not url.hostname or url.username or url.password or url.query or url.fragment:
+            raise ValueError("Use public HTTPS URLs (or HTTP with a pinned sha256) without credentials or signed query strings.")
     if not isinstance(asset.get("expected"), list):
         raise ValueError(f"Asset {name} needs expected members.")
     return asset

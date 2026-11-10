@@ -4,6 +4,21 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: D2 data acquisition and preparation code (T009–T011, in progress)
+
+- Task: Obtain BDD100K data and implement `data prepare` (conversion, selection,
+  integrity checks, YOLO/COCO exports).
+- Assistance: Claude Code searched for the Detection 2020 labels. The official hosts
+  are offline and no copy matching the published MD5 exists, so it switched to the
+  2018 per-image labels from the author mirror (recorded in `docs/references.md` and
+  research R2). It allowed HTTP asset URLs only with a pinned SHA-256, and wrote
+  `src/driving_detection/data.py` and `configs/data/bdd-subset.yaml`.
+- Verification so far: all 80,000 official train/val label files parsed with known
+  categories (1 box empty after clipping, 340 negatives, 12,981 clipped boxes) in an
+  ad hoc check, not committed. The rejected mirror file was inspected (images, no
+  label JSON). The real `data prepare` run and its review (T012) are still pending
+  while the 5.7 GB image archive downloads.
+
 ## 2026-11-10: Constitution 2.1.0 and large-data sync exclusions
 
 - Task: At user direction, limit review stops to commit points, and keep large data

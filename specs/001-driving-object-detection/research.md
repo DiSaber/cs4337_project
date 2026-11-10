@@ -26,6 +26,8 @@ Sources: [immutable model source](https://github.com/ultralytics/yolov5/commit/9
 
 **Alternatives considered**: Mirror downloads without provenance are rejected. A separately identified legacy-label profile can be added only before manifest freeze, never silently mixed with Detection 2020. Raw BDD videos and Roboflow accounts are unnecessary core dependencies.
 
+**Update (2026-11-10, D2)**: Detection 2020 labels could not be obtained. The official hosts are offline, no archived or mirrored copy matches the published MD5, and the author mirror's file of that name contains images rather than labels. `bdd-subset-v1` therefore uses the separately identified 2018 per-image label release (`BDD100K-2018-labels-per-image`) for the same 100K keyframes, chosen before any manifest was frozen. Both archives come from the dataset author's HTTP mirror and are pinned by SHA-256. Evidence and differences are in [references](../../docs/references.md).
+
 Sources: [official dataset downloads](https://github.com/bdd100k/bdd100k/blob/master/doc/source/download.rst), [dataset/code terms](https://github.com/bdd100k/bdd100k/blob/master/doc/source/license.rst), [official weights](https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt), [release license](https://raw.githubusercontent.com/ultralytics/yolov5/v7.0/LICENSE). Preserve the chosen release's GPL-3.0 notice separately from dataset and project notices; do not infer its terms from current master.
 
 ## R3 — Labels, geometry, and ignored examples

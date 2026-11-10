@@ -6,7 +6,7 @@ Run from the repository root. Use the tested CPU environment locally and the tes
 
 ## 1. Setup — D1
 
-Prerequisites: Python 3.10–3.14 (Colab 3.13 and local 3.14.7 / 3.10 are allowed targets), sufficient archive/extraction/output disk space, authorized BDD100K image/Detection 2020 label access, and a compatible NVIDIA GPU for reported training. Official download access may require manual terms/access steps; existing authorized archives are supported.
+Prerequisites: Python 3.10–3.14 (Colab 3.13 and local 3.14.7 / 3.10 are allowed targets), sufficient archive/extraction/output disk space, BDD100K image and 2018 per-image label archives (downloaded automatically from the author mirror; Detection 2020 is no longer available), and a compatible NVIDIA GPU for reported training. Official download access may require manual terms/access steps; existing authorized archives are supported.
 
 For the verified Windows CPU profile, `python` must be Python 3.14.7. Other allowed interpreters require their own resolved environment; this lock contains platform/interpreter-specific wheels:
 
@@ -35,7 +35,7 @@ python -m driving_detection data prepare --config configs/data/bdd-subset.yaml
 If data downloads are unavailable, import authorized archives instead, replacing these example paths:
 
 ```powershell
-python -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_det_20_labels.zip"
+python -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_labels.zip"
 ```
 
 Expected: preparation validates itself, records exclusions and negative counts, freezes profile/manifests with byte hashes, and selects 5,000 train / 1,000 val / 1,000 project-held-out images/sequences. Confirm three-class coverage and zero sequence/content overlap. Repeat identical preparation to verify reuse/stable manifests. Unknown labels, invalid boxes/provenance, insufficient eligible counts or coverage fail clearly. Inspect a few label overlays, including a small or edge box, and review the recorded quarantine reasons. The holdout is a subset of official labeled val, not the official benchmark test.

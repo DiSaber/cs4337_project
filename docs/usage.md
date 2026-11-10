@@ -31,24 +31,32 @@ recorded in `requirements/cuda-lock.txt` and `cuda-wheels.json`.
 
 ## External assets
 
-Review [sources, licensing and access prerequisites](references.md). Model sync
-downloads only the pinned official source archive and checkpoint. To acquire all
-required inputs, supply authorized BDD100K image and Detection 2020 archives:
+Review [sources, licensing and access prerequisites](references.md). Full sync
+downloads the pinned YOLO source and checkpoint, plus the BDD100K 100K image
+archive (5.7 GB) and the 2018 per-image label archive (190 MB) from the dataset
+author's mirror. Allow about 12 GB of free disk for the archives and extracted files.
 
 ```powershell
-.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_det_20_labels.zip"
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml
 ```
 
-The dataset's public download route is not verified available, so its config URLs
-are unset. Running full sync without local archives gives an actionable access
-error. A verified public HTTPS URL can be configured; embedded credentials/signed
-query URLs are rejected. Model SHA-256 pins are measured official-download
-identities; dataset MD5s come from the publisher. Supplied local archives must
-match their declared checksums and expected members.
+If you already have the same archives, import them instead of downloading:
+
+```powershell
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_labels.zip"
+```
+
+The BDD mirror serves plain HTTP because its HTTPS certificate has expired.
+Sync accepts an HTTP URL only when a SHA-256 is pinned for it, and checks the
+publisher MD5 too where one exists. Embedded credentials and signed query URLs
+are rejected. Model SHA-256 pins are measured official-download identities.
+Supplied local archives must match the same checksums and expected members.
+Detection 2020 labels are no longer downloadable; [references](references.md)
+explains the switch to the 2018 labels.
 
 Outputs are `external/yolov5-v7.0`, `external/weights/yolov5s.pt`,
-`data/raw/images/bdd100k/images/100k/`, and
-`data/raw/labels/bdd100k/labels/det_20/`. `artifacts/assets.json` stores asset
+`data/raw/images/bdd100k/images/100k/`, and `data/raw/labels/100k/`.
+`artifacts/assets.json` stores asset
 identities/readiness; `artifacts/asset-receipts/` stores verified receipts.
 Sync stages assets before promotion and refuses existing unverified/changed
 destinations. Repeated sync hashes extracted contents, so checking large data
