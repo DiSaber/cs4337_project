@@ -55,7 +55,7 @@ Detection 2020 labels are no longer downloadable; [references](references.md)
 explains the switch to the 2018 labels.
 
 Outputs are `external/yolov5-v7.0`, `external/weights/yolov5s.pt`,
-`data/raw/images/bdd100k/images/100k/`, and `data/raw/labels/100k/`.
+`data/raw/images/100k/`, and `data/raw/labels/100k/`.
 `artifacts/assets.json` stores asset
 identities/readiness; `artifacts/asset-receipts/` stores verified receipts.
 Sync stages assets before promotion and refuses existing unverified/changed

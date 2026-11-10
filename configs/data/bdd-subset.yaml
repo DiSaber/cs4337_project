@@ -3,7 +3,7 @@
 profile_id: bdd-subset-v1
 assets: configs/assets.yaml
 output: data/prepared/bdd-subset-v1
-images: data/raw/images/bdd100k/images/100k   # <official split>/<name>.jpg
+images: data/raw/images/100k                  # <official split>/<name>.jpg
 labels: data/raw/labels/100k                  # <official split>/<name>.json (2018 per-image release)
 classes: [car, pedestrian, traffic_light]     # canonical IDs 0, 1, 2
 # Source category -> canonical class. van/caravan are documented car aliases.

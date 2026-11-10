@@ -22,13 +22,14 @@ assets:
   images:
     kind: zip
     version: BDD100K-100K-keyframes
-    # Author-hosted mirror (HTTP only: its HTTPS certificate has expired). The
-    # publisher MD5 and the pinned SHA-256 below verify the bytes.
+    # Author-hosted mirror (HTTP only: its HTTPS certificate has expired). Its
+    # bytes do not match the publisher MD5 (see docs/references.md), so the
+    # SHA-256 is our measured identity of the mirror archive.
     url: http://dl.yf.io/bdd100k/bdd100k_images_100k.zip
     path: data/raw/images
     strip_prefix: ''
-    md5: 5a0359c86a0b8713adab1eee9a3041cb
-    expected: [bdd100k/images/100k/train, bdd100k/images/100k/val, bdd100k/images/100k/test]
+    sha256: afd149eadb49657ef5ad7bb6e9d77cc8b7927a576ee2b475b720028274e02784 # Measured download SHA-256.
+    expected: [100k/train, 100k/val, 100k/test]
     terms: https://doc.bdd100k.com/license.html
   labels:
     # Detection 2020 labels are no longer downloadable (official hosts offline;
