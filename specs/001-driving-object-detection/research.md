@@ -4,6 +4,8 @@
 
 **Scope revision**: The user approved a smaller implementation after review. The decisions below retain data/model/evaluation correctness but use direct wrappers, six command handlers, compact files, a human-reviewed comparison/selection, and one timing interval. Tests are limited to focused data/metric checks and one opt-in CPU pipeline smoke test. The current [plan](plan.md) and contracts implement this reduction.
 
+**Testing revision (2026-11-10)**: Constitution v2.0.0 Principle VII forbids automated tests. All test modules, fixtures and pytest were removed from the plan. Mentions of pytest, test fixtures and the opt-in smoke test below are historical. Verification is now by normal runs and manual review, plus one short smoke training run with the normal `train` command; see the [plan](plan.md).
+
 ## R1 — Model and runtime
 
 **2026-11-05 runtime revision**: The user authorized Python 3.10–3.14, including reported Colab 3.13 and observed local 3.14.7 / 3.10. The original exact targets below are historical research, superseded by the bounded dependencies in `pyproject.toml` and the current plan. D1 resolves and locks the actual CPU/GPU environments; no full runtime compatibility is claimed yet. The [official torchvision matrix](https://github.com/pytorch/vision) lists torch 2.9 / torchvision 0.24 for Python 3.10–3.14. Modern integration must address [torch loading defaults](https://docs.pytorch.org/docs/stable/notes/serialization) and [removed Pillow text APIs](https://pillow.readthedocs.io/en/stable/deprecations.html). This authorizes necessary compatibility changes while preserving the pinned model source identity and recording any local adaptations.

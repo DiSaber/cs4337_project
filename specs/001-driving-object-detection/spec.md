@@ -1,10 +1,10 @@
 # Feature Specification: Driving Scene Object Detection
 
-**Feature Branch**: No branch created; specification context is independent of branch name.
+**Feature Branch**: Context `001-driving-object-detection`; each deliverable uses its own branch (D1: `001-driving-object-detection-us1`).
 
 **Created**: 2026-11-05
 
-**Status**: Draft — validated for planning; no implementation is claimed.
+**Status**: Approved for implementation; D1 complete. Revised 2026-11-10 for constitution v2.0.0 Principle VII: verification is by normal execution and manual review, with no automated tests.
 
 **Input**: `cs4337_project.txt`, supplied at `C:/Users/Marc/Downloads/cs4337_project.txt`, and its three referenced course documents. Include the whole project in one specification, organized into distinct PR deliverables with dependencies and parallel work identified.
 
@@ -12,7 +12,7 @@
 
 Users are student contributors preparing experiments and coursework, teammates reproducing results, and course reviewers assessing evidence. The required outcome is an understandable, reproducible driving-scene detection project and complete course handoff. This is an academic experiment; vehicle control and safety deployment are outside scope.
 
-Each story owns one deliverable, the corresponding requirements block, and a proposed implementation PR. Priorities indicate importance; the dependency table defines execution order. Independent tests may use accepted predecessor outputs or documented fixtures without repeating the whole pipeline. Required scope remains required even though the course permits honest submission of incomplete work.
+Each story owns one deliverable, the corresponding requirements block, and a proposed implementation PR. Priorities indicate importance; the dependency table defines execution order. Independent tests are normal runs plus manual review of their outputs. They may use accepted predecessor outputs or small samples of the real data without repeating the whole pipeline. Required scope remains required even though the course permits honest submission of incomplete work.
 
 ### User Story 1 - Reproduce project setup (Priority: P1)
 
@@ -85,16 +85,16 @@ As an experimenter, I can measure accuracy/speed under declared conditions and i
 
 **Why this priority**: Course findings need defensible measurements rather than attractive examples alone.
 
-**Independent Test**: Check metrics on controlled examples, evaluate baseline validation data, and audit the evidence package. Final testing follows D6 selection.
+**Independent Test**: Evaluate baseline validation data, hand-check reported matches on a few evaluated images, and audit the evidence package. Final testing follows D6 selection.
 
 **Acceptance Scenarios**:
 
-1. **Given** controlled predictions/labels, **When** evaluated, **Then** perfect detections, misses, false detections, and duplicates yield expected outcomes under declared matching rules.
+1. **Given** a few evaluated images with labels and predictions drawn, **When** a reviewer counts matches by hand under the declared matching rules, **Then** the counted matches, misses, false detections, and duplicates agree with the reported counts.
 2. **Given** a baseline and evaluation partition, **When** evaluated, **Then** aggregate/per-class measures identify the model, data, thresholds, and definitions.
 3. **Given** a speed claim, **When** reported, **Then** hardware, input size, batch size, timed stages, warm-up, and sample count accompany it.
 4. **Given** selected examples, **When** reviewed, **Then** both successes/failures appear and measured findings are distinguished from untested conditions.
 
-**Owned requirements**: FR-018–FR-022. **Merge evidence**: metric checks, baseline validation results, timing record, and representative examples.
+**Owned requirements**: FR-018–FR-022. **Merge evidence**: manual metric review, baseline validation results, timing record, and representative examples.
 
 ### User Story 6 - Compare a bounded improvement attempt (Priority: P2)
 
@@ -171,7 +171,7 @@ Each row is one cohesive merge unit with its owned requirements, verification, u
 | D2 Prepared data | US2 / FR-005–010 | D1 | Component design using agreed data contract | Validated partitions/provenance |
 | D3 Baseline training | US3 / FR-011–014 | D2 | D4/D5 after contracts fixed | Loadable baseline and run record |
 | D4 Image/video inference | US4 / FR-015–017 | D1; D2 class-map/model contract | D3/D5 using a compatible reference model | Demonstrated inference; D3 integration before core acceptance |
-| D5 Evaluation/evidence | US5 / FR-018–022 | D2; D3 for measured baseline | D4; metric fixtures may precede D3 | Correct metrics and baseline validation evidence |
+| D5 Evaluation/evidence | US5 / FR-018–022 | D2; D3 for measured baseline | D4; metric code may precede D3 | Correct metrics and baseline validation evidence |
 | D6 Optimization/final testing | US6 / FR-023–025 | D3, D4, D5 | D7/D8 preparation | Comparison, frozen selection, held-out result |
 | D7 Report/submission handoff | US7 / FR-026–032 | D1–D6 evidence for final claims | D8; checklist/access preparation starts immediately | Reviewed report/handoff; pending actions explicit |
 | D8 Presentation/follow-up | US8 / FR-033–036 | D1–D6 evidence for final claims | D7; outline/visual design starts earlier | Reviewed materials/handoff; uploads/responses needed for course completion |
@@ -232,7 +232,7 @@ Report/presentation PRs can merge with external actions explicitly pending; cour
 #### D5 — Evaluation and evidence
 
 - **FR-018**: Report aggregate/per-class mAP, precision, recall, sample counts, and absent-coverage/undefined-value handling for the three classes.
-- **FR-019**: Report mAP at IoU 0.50 and averaged across IoU 0.50–0.95 in 0.05 steps. Document matching rules, score thresholds, and precision/recall operating point. Controlled examples MUST verify correctness.
+- **FR-019**: Report mAP at IoU 0.50 and averaged across IoU 0.50–0.95 in 0.05 steps. Document matching rules, score thresholds, and precision/recall operating point. Verify correctness by manually reviewing matched, missed, and false detections on a few evaluated images (including a no-object image where available) against the reported counts. Do not add automated metric tests.
 - **FR-020**: Results MUST identify model, partition, configuration, and run record. Baseline development uses validation data; reserve test data for final evaluation after frozen selection.
 - **FR-021**: Speed claims MUST state hardware, input size, batch size, timed stages, warm-up, sample count, and latency/throughput units. Comparisons use common conditions or disclose differences.
 - **FR-022**: Preserve at least one success/failure per class where available, explaining unavailable cases. Discuss lighting, weather, perspective, visibility/size, and training-to-new-scene differences without claiming untested generalization.
@@ -285,7 +285,7 @@ Report/presentation PRs can merge with external actions explicitly pending; cour
 - **SC-002**: Every retained sample has partition/sequence provenance; checks find zero sequence/derived-copy overlap and all three classes in each evaluated partition. Covers D2.
 - **SC-003**: At least one completed baseline produces a loadable detector; 100% of reported runs contain FR-012 fields. A teammate can repeat the procedure with nondeterminism explained. Covers D3.
 - **SC-004**: A reviewer can inspect predictions/annotations for at least one new image set and one short video, including a no-detection example; invalid-input behavior is demonstrated. Covers D4.
-- **SC-005**: Baseline validation and final held-out records each contain both mAP measures, precision, recall, coverage, experiment identity, and speed conditions; controlled metric cases produce reviewed expected results. Covers D5/D6.
+- **SC-005**: Baseline validation and final held-out records each contain both mAP measures, precision, recall, coverage, experiment identity, and speed conditions; a manual review of evaluated images agrees with the reported match counts. Covers D5/D6.
 - **SC-006**: At least one candidate is compared under a common validation protocol/budget, with justified selection and success/failure examples per class or missing-case explanations. Covers D5/D6.
 - **SC-007**: One three-page student-authored PDF and code handoff are audited against all applicable course requirements with contributors/roles/sources identified. Submission/access items have evidence or remain pending; pending items mean course completion is not achieved. Covers D7.
 - **SC-008**: One 5–10 minute recording passes readability/audio/incognito review and has slides/video-link submission evidence. Top 10 responses are recorded; unavailable feedback stays explicitly pending and prevents course-completion claims. Covers D8.

@@ -101,3 +101,24 @@ hashed CUDA lock was derived and checked against the accepted installation, not
 reinstalled in another fresh Colab runtime. Training compatibility still requires
 the later connected smoke; no dataset preparation, trained baseline, accuracy or
 speed measurements are claimed. US2 and later task markers remain unchecked.
+
+## 2026-11-10: US1 merge review decisions
+
+Status: **US1 accepted for merge to `main`; no new pipeline runs**.
+
+- SC-001 reviewer: SC-001 asks for "a teammate other than the setup author".
+  Marc Benamou ran the Colab fresh-setup check and accepted it as the independent
+  check. No second teammate repeated setup. This is a recorded deviation, not
+  evidence from a different person.
+- Test-only packages: `pytest`, `pluggy` and `iniconfig` were removed from both
+  locks and the `dev` extra was removed from `pyproject.toml` under constitution
+  Principle VII. The 57 CPU / 74 CUDA counts above describe the environments as
+  verified; the locks now list 54 / 71. See [requirements](../requirements/README.md).
+- Rechecked locally on Windows/Python 3.14.7 CPU: `assets sync --only model`
+  reused source/weights (exit 0); `check --device cpu` loaded the 80-class
+  reference checkpoint (exit 0); full sync without BDD archives and the
+  unimplemented `train` handler both exited 1 with clear messages. The trimmed CPU
+  lock passed a hash-checked `pip install --dry-run`.
+- Dataset settings: the BDD100K MD5s and extracted layouts in `configs/assets.yaml`
+  match the official download documentation. Real dataset archives have still not
+  been synced; D2 will be the first real check.

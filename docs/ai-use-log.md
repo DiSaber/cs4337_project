@@ -4,6 +4,29 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: US1 merge review and Principle VII reconciliation
+
+- Task: Review the spec and US1 implementation for merge to `main`; resolve the
+  conflict between constitution v2.0.0 Principle VII (no automated tests) and the
+  plan's test modules; record the user's decision on the SC-001 reviewer.
+- Assistance: Claude Code reviewed the constitution, spec, plan, tasks and US1
+  code. It rewrote the testing parts of `spec.md` (FR-019, US5, SC-005),
+  `plan.md`, `tasks.md` (T008/T019 removed; T012/T013/T014/T022/T024 reworded),
+  `quickstart.md`, `contracts/pipeline.md` and `research.md` to use normal runs,
+  manual review and one short smoke training run. It removed the pytest `dev`
+  extra and the `pytest`/`pluggy`/`iniconfig` lock entries, and recorded the
+  decisions in `results/experiments.md` and `requirements/README.md`.
+- Verification: Reran `assets sync --only model` and `check --device cpu` on the
+  local Windows/Python 3.14.7 environment (both exit 0, assets reused); confirmed
+  clear exit-1 errors for a full sync without BDD archives and for the
+  unimplemented `train` handler. The trimmed CPU lock passed a hash-checked
+  `pip install --dry-run`. Compared the BDD100K MD5s and layouts in
+  `configs/assets.yaml` with the official download documentation (they match).
+  Searched spec artifacts for leftover test references.
+- Limits: The trimmed CUDA lock was not reinstalled in Colab. No real BDD archive
+  has been synced. The SC-001 check was run by the setup author and accepted by
+  the user, not repeated by a second teammate. US1 code was not changed.
+
 ## 2026-11-07: Bash setup and constitution merge
 
 - Task: Add Bash support without overwriting project work, retain PowerShell references

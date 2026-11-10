@@ -1,10 +1,17 @@
 # Environment records
 
 `cpu-lock.txt` is the resolved **Windows amd64 / Python 3.14.7 CPU** environment
-used for real import/checkpoint readiness checks. It lists 57 external runtime/dev
+used for real import/checkpoint readiness checks. It lists 54 external runtime
 distributions with wheel SHA-256; install the project itself separately with
 `--no-deps -e .`. `cpu-wheels.json` preserves all wheel origins, including the
 official CPU PyTorch wheel URLs. Installation steps are in [usage](../docs/usage.md).
+
+On 2026-11-10, `pytest`, `pluggy` and `iniconfig` were removed from both locks
+because constitution Principle VII rules out automated tests; no other locked
+package depends on them. The verified environments contained them (57 CPU / 74
+CUDA distributions), and both `*-wheels.json` files still record those original
+installs. The trimmed CPU lock passed a hash-checked `pip install --dry-run`
+against the verified environment; the trimmed CUDA lock was not reinstalled.
 
 This is a platform/interpreter-specific lock, not a Python 3.10–3.14 or Linux
 compatibility claim. Other allowed Python versions need their own environment
@@ -12,7 +19,7 @@ resolution and readiness check. The original Python-3.11 targets were superseded
 when the user authorized the locally installed interpreters and Colab 3.13.
 
 `cuda-lock.txt` records the supplied, successful **Colab Linux x86_64 / Python
-3.13.16 / Tesla T4 / CUDA 12.8** environment: 74 external distributions with exact
+3.13.16 / Tesla T4 / CUDA 12.8** environment: 71 external distributions with exact
 wheel URLs and SHA-256. `cuda-wheels.json` preserves the corresponding provenance.
 The dependency set matches both the freeze file and installed-package inspection;
 versions/origins come from the initial pip reports. Two missing generic-wheel

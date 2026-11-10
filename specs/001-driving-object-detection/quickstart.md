@@ -19,7 +19,7 @@ python -m driving_detection assets sync --config configs/assets.yaml --only mode
 python -m driving_detection check --config configs/assets.yaml --device cpu
 ```
 
-Expected: pinned source/official weights and hashes, successful imports/checkpoint load, readable device/readiness report. Dataset readiness is separate from model-only readiness. Repeat setup to verify valid assets are reused and earlier outputs preserved; check an interrupted/invalid small download fixture recovers or fails clearly.
+Expected: pinned source/official weights and hashes, successful imports/checkpoint load, readable device/readiness report. Dataset readiness is separate from model-only readiness. Repeat setup to verify valid assets are reused and earlier outputs preserved; check that an interrupted or wrong-checksum download recovers or fails clearly.
 
 Use `python --version` to identify the interpreter before creating the environment; on Windows `py -3.10` selects the locally registered 3.10 interpreter if desired. The allowed range is not a tested environment matrix.
 
@@ -30,7 +30,6 @@ For Linux/Colab, follow the [Colab verification handoff](../../docs/colab-setup.
 ```powershell
 python -m driving_detection assets sync --config configs/assets.yaml
 python -m driving_detection data prepare --config configs/data/bdd-subset.yaml
-python -m pytest tests/test_data.py tests/test_metrics.py
 ```
 
 If data downloads are unavailable, import authorized archives instead, replacing these example paths:
@@ -39,21 +38,17 @@ If data downloads are unavailable, import authorized archives instead, replacing
 python -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_det_20_labels.zip"
 ```
 
-Expected: preparation validates itself, records exclusions and negative counts, freezes profile/manifests with byte hashes, and selects 5,000 train / 1,000 val / 1,000 project-held-out images/sequences. Confirm three-class coverage and zero sequence/content overlap. Repeat identical preparation to verify reuse/stable manifests. Unknown labels, invalid boxes/provenance, insufficient eligible counts or coverage fail clearly. Inspect a sample label overlay and focused one-pixel/boundary geometry cases. The holdout is a subset of official labeled val, not the official benchmark test.
+Expected: preparation validates itself, records exclusions and negative counts, freezes profile/manifests with byte hashes, and selects 5,000 train / 1,000 val / 1,000 project-held-out images/sequences. Confirm three-class coverage and zero sequence/content overlap. Repeat identical preparation to verify reuse/stable manifests. Unknown labels, invalid boxes/provenance, insufficient eligible counts or coverage fail clearly. Inspect a few label overlays, including a small or edge box, and review the recorded quarantine reasons. The holdout is a subset of official labeled val, not the official benchmark test.
 
-## 3. One optional CPU smoke — D3–D5
+## 3. One short smoke run — D3–D5
 
-Once the connected commands exist and model assets are available:
+There are no automated tests (constitution Principle VII). Before the baseline, run one short training with the normal command and the smoke settings (one epoch, size 320, batch 2):
 
 ```powershell
-$env:RUN_MODEL_SMOKE = "1"
-python -m pytest tests/test_smoke.py
-Remove-Item Env:RUN_MODEL_SMOKE
+python -m driving_detection train --profile data/prepared/bdd-subset-v1/profile.json --config configs/train/smoke.yaml --run-id smoke-01
 ```
 
-On Linux use RUN_MODEL_SMOKE=1 for that invocation. The smoke test privately generates a few BDD-shaped images/labels and short video, prepares them through the same importer, trains one CPU epoch at size 320/batch 2, loads the checkpoint, infers images/video and runs evaluation. It checks usable outputs and failure/empty behavior without requiring a trained model to achieve a particular accuracy.
-
-Default pytest runs skip this model smoke unless explicitly enabled. Run it when the pipeline first connects or materially changes; do not add separate contract/integration layers or retrain for routine document/config edits. Synthetic scores are not driving-scene findings.
+Expected: a loadable checkpoint and a complete run.json, which confirms training works with the pinned source. Once infer/evaluate exist, run them on `artifacts/runs/smoke-01/weights/best.pt` to connect the pipeline early. Review the outputs, including an empty result and an invalid input, and hand-count matches on a few evaluated images against the reported counts. Smoke scores are never project findings. Repeat only when the connected pipeline materially changes.
 
 ## 4. Actual baseline and demonstrations — D3/D4
 
@@ -77,7 +72,7 @@ python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/
 
 Expected: predictions, run.json and metrics.json with AP50/AP50:95, micro/per-class P/R at the documented operating point, coverage/counts and null reasons where relevant. One synchronized interval measures preprocessing+transfer+forward+NMS over the fixed validation timing subset; record mean latency/throughput, hardware/input/batch/precision, warm-up/counts and excluded decoding/drawing/encoding. This does not claim full video-processing speed.
 
-A reviewer confirms D1–D5 real-data/model identities, baseline, image/video outputs, metric tests, validation results/timing and success/failure examples or missing-case explanations. Record the acceptance in experiment notes. No core command or generated gate file.
+A reviewer confirms D1–D5 real-data/model identities, baseline, image/video outputs, the manual metric review, validation results/timing and success/failure examples or missing-case explanations. Record the acceptance in experiment notes. No core command or generated gate file.
 
 ## 6. Compare and save the selection — D6
 
