@@ -1,6 +1,6 @@
 # CLI Contract
 
-The future package exposes `python -m driving_detection` with six command handlers. These interfaces are documentation for implementation; no application code exists yet. See [records](records.md) and [pipeline](pipeline.md).
+The package exposes `python -m driving_detection` with argument parsing and lazy dispatch for six command handlers. CLI/shared helpers and asset sync/readiness are implemented; data/train/infer/evaluate remain later tasks. US1's recorded CPU/GPU setup and user-confirmed review are accepted. The full interfaces below remain the implementation contract. See [records](records.md) and [pipeline](pipeline.md).
 
 ## Shared behavior
 

@@ -12,9 +12,19 @@ with the constitution rather than silently overriding it or changing project gov
 
 For feature work, resolve the active feature from the repository root with:
 
+Bash:
+
+```bash
+.specify/scripts/bash/check-prerequisites.sh --json --paths-only
+```
+
+PowerShell:
+
 ```powershell
 .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
 ```
+
+Use the command for your platform. Keep both script references in shared skills.
 
 This mode only resolves paths and does not update local feature state. Read the returned
 feature directory's `spec.md`, `plan.md`, and `tasks.md` when they exist, plus relevant

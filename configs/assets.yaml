@@ -1,0 +1,39 @@
+# Sources/terms and checksum provenance: docs/references.md.
+inventory: artifacts/assets.json
+device: cpu
+assets:
+  source:
+    kind: zip
+    version: 915bbf294bb74c859f0b41f1c23bc395014ea679
+    url: https://github.com/ultralytics/yolov5/archive/915bbf294bb74c859f0b41f1c23bc395014ea679.zip
+    path: external/yolov5-v7.0
+    strip_prefix: yolov5-915bbf294bb74c859f0b41f1c23bc395014ea679
+    sha256: 5aac5c8c40f89831fee611621b5ef3dbd7a7633278713b4dd0d059e1a631c7b0 # Measured official-download SHA-256, not a publisher signature.
+    expected: [models/yolo.py, models/experimental.py, train.py, requirements.txt, LICENSE]
+    terms: https://github.com/ultralytics/yolov5/blob/v7.0/LICENSE
+  weights:
+    kind: file
+    version: yolov5s-v7.0
+    url: https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt
+    path: external/weights/yolov5s.pt
+    sha256: 8b3b748c1e592ddd8868022e8732fde20025197328490623cc16c6f24d0782ee # Measured official-download SHA-256.
+    expected: []
+    terms: https://github.com/ultralytics/yolov5/blob/v7.0/LICENSE
+  images:
+    kind: zip
+    version: BDD100K-100K-keyframes
+    url: null # Import an authorized archive using --images-archive.
+    path: data/raw/images
+    strip_prefix: ''
+    md5: 5a0359c86a0b8713adab1eee9a3041cb
+    expected: [bdd100k/images/100k/train, bdd100k/images/100k/val, bdd100k/images/100k/test]
+    terms: https://doc.bdd100k.com/license.html
+  labels:
+    kind: zip
+    version: BDD100K-Detection-2020
+    url: null # Import an authorized archive using --labels-archive.
+    path: data/raw/labels
+    strip_prefix: ''
+    md5: b86a3e1b7edbcad421b7dad2b3987c94
+    expected: [bdd100k/labels/det_20/det_train.json, bdd100k/labels/det_20/det_val.json]
+    terms: https://doc.bdd100k.com/license.html

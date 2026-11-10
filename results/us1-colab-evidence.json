@@ -1,0 +1,182 @@
+{
+  "evidence_date": "2026-11-05",
+  "project_revision": "67833246d48678336e5ebef0b8b33ee9fae88c24",
+  "review": {
+    "name": "Marc Benamou",
+    "status": "complete",
+    "basis": "User confirmation in this session; raw bundle has no separate reviewer notes."
+  },
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.13.16",
+    "os_name": "posix",
+    "platform_machine": "x86_64",
+    "platform_release": "6.6.159+",
+    "platform_system": "Linux",
+    "platform_version": "#1 SMP Thu Oct 22 03:07:54 UTC 2026",
+    "python_full_version": "3.13.16",
+    "platform_python_implementation": "CPython",
+    "python_version": "3.13",
+    "sys_platform": "linux"
+  },
+  "dependency_count": 74,
+  "driver_version": "580.82.07",
+  "driver_reported_cuda": "13.0",
+  "runtime_cuda": "12.8",
+  "checks": {
+    "first": {
+      "updated_at": "2026-11-05T23:47:38.508545+00:00",
+      "python": "3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]",
+      "executable": "/content/cs4337_project/.venv-colab/bin/python",
+      "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+      "device": "cuda:0",
+      "status": "completed",
+      "versions": {
+        "torch": "2.9.1+cu128",
+        "torchvision": "0.24.1+cu128",
+        "numpy": "2.5.4",
+        "Pillow": "12.3.0",
+        "opencv-python": "4.14.0.94",
+        "PyYAML": "6.0.3",
+        "pycocotools": "2.0.11"
+      },
+      "hardware": {
+        "processor": "x86_64",
+        "torch_cuda": "12.8",
+        "gpu": "Tesla T4"
+      },
+      "reference_classes": 80,
+      "compatibility": [
+        "Verified official checkpoint loaded with explicit weights_only=False; upstream files unchanged.",
+        "Removed Pillow font.getsize restored via getbbox for pinned YOLO plotting."
+      ],
+      "datasets": {
+        "images": "images is not verified; run assets sync. Existing unverified outputs must be moved aside manually.",
+        "labels": "labels is not verified; run assets sync. Existing unverified outputs must be moved aside manually."
+      }
+    },
+    "repeated": {
+      "updated_at": "2026-11-05T23:50:43.176162+00:00",
+      "python": "3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]",
+      "executable": "/content/cs4337_project/.venv-colab/bin/python",
+      "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+      "device": "cuda:0",
+      "status": "completed",
+      "versions": {
+        "torch": "2.9.1+cu128",
+        "torchvision": "0.24.1+cu128",
+        "numpy": "2.5.4",
+        "Pillow": "12.3.0",
+        "opencv-python": "4.14.0.94",
+        "PyYAML": "6.0.3",
+        "pycocotools": "2.0.11"
+      },
+      "hardware": {
+        "processor": "x86_64",
+        "torch_cuda": "12.8",
+        "gpu": "Tesla T4"
+      },
+      "reference_classes": 80,
+      "compatibility": [
+        "Verified official checkpoint loaded with explicit weights_only=False; upstream files unchanged.",
+        "Removed Pillow font.getsize restored via getbbox for pinned YOLO plotting."
+      ],
+      "datasets": {
+        "images": "images is not verified; run assets sync. Existing unverified outputs must be moved aside manually.",
+        "labels": "labels is not verified; run assets sync. Existing unverified outputs must be moved aside manually."
+      }
+    }
+  },
+  "assets": {
+    "source": {
+      "definition": {
+        "kind": "zip",
+        "version": "915bbf294bb74c859f0b41f1c23bc395014ea679",
+        "url": "https://github.com/ultralytics/yolov5/archive/915bbf294bb74c859f0b41f1c23bc395014ea679.zip",
+        "path": "external/yolov5-v7.0",
+        "strip_prefix": "yolov5-915bbf294bb74c859f0b41f1c23bc395014ea679",
+        "sha256": "5aac5c8c40f89831fee611621b5ef3dbd7a7633278713b4dd0d059e1a631c7b0",
+        "expected": [
+          "models/yolo.py",
+          "models/experimental.py",
+          "train.py",
+          "requirements.txt",
+          "LICENSE"
+        ],
+        "terms": "https://github.com/ultralytics/yolov5/blob/v7.0/LICENSE"
+      },
+      "path": "external/yolov5-v7.0",
+      "sha256": "5aac5c8c40f89831fee611621b5ef3dbd7a7633278713b4dd0d059e1a631c7b0",
+      "status": "verified",
+      "tree_sha256": "7bbe42637cbec9dc8f9e32c83ca048c92c79fb113f00df042ad9645a1c476078",
+      "file_count": 144
+    },
+    "weights": {
+      "definition": {
+        "kind": "file",
+        "version": "yolov5s-v7.0",
+        "url": "https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt",
+        "path": "external/weights/yolov5s.pt",
+        "sha256": "8b3b748c1e592ddd8868022e8732fde20025197328490623cc16c6f24d0782ee",
+        "expected": [],
+        "terms": "https://github.com/ultralytics/yolov5/blob/v7.0/LICENSE"
+      },
+      "path": "external/weights/yolov5s.pt",
+      "sha256": "8b3b748c1e592ddd8868022e8732fde20025197328490623cc16c6f24d0782ee",
+      "status": "verified"
+    }
+  },
+  "input_files": [
+    {
+      "name": "cuda-freeze.txt",
+      "size_bytes": 1466,
+      "sha256": "8511d25eb58501e55ed60dabd526a1ca58a4ccc1b75876b24a658bd0abf19d38"
+    },
+    {
+      "name": "first-assets.json",
+      "size_bytes": 5416,
+      "sha256": "14970fbb4dcc258eb65dc65e4b20e1c53f774b8df7d326d86e52babd5ff01751"
+    },
+    {
+      "name": "installed.json",
+      "size_bytes": 945285,
+      "sha256": "185ba9a8386bf69c5d1ec40886f0a79a6b7728e0689121247418086b73c81968"
+    },
+    {
+      "name": "nvidia-smi.txt",
+      "size_bytes": 1689,
+      "sha256": "a1eab15ddb4262df13c115564d5c2363aa2fd0402b92d250435b6829321fc711"
+    },
+    {
+      "name": "project-install.json",
+      "size_bytes": 810968,
+      "sha256": "7bd50e5e04c4441b63231631098765f7d23489bfcc0b8275ed4bc56e9c1bbcca"
+    },
+    {
+      "name": "project-revision.txt",
+      "size_bytes": 41,
+      "sha256": "c68e1f4bf7aa4a6c4ecc78e387106516b5cd9b73b7809307f65c3683c5e093af"
+    },
+    {
+      "name": "python.txt",
+      "size_bytes": 15,
+      "sha256": "8a078b480fefb612930032cc46f81bc6d76b152bac4903485d0c5771f32219ad"
+    },
+    {
+      "name": "repeated-assets.json",
+      "size_bytes": 5416,
+      "sha256": "fd0ecafafd3f65026f34cbb1792ec8519b682911ae4d154e02511a6379308507"
+    },
+    {
+      "name": "torch-install.json",
+      "size_bytes": 170189,
+      "sha256": "4e3ffa324a1b3699fc94e4d9548a2f39b34b4468381707cddb5da0c783c49f2b"
+    }
+  ],
+  "limitations": [
+    "Readiness only; no training/accuracy/speed evidence.",
+    "Dataset images/labels absent.",
+    "Independent review completion is user-attested; console reuse/result-file logs are not in the bundle.",
+    "The finalized hashed lock has not itself been reinstalled in a second Colab runtime."
+  ]
+}

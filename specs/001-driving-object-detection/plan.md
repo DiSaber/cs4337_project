@@ -12,15 +12,15 @@ Use ordinary functions, a few configuration files, and small run records. Core a
 
 ## Technical Context
 
-**Language/Version**: Python 3.11; record the actual interpreter build.
+**Language/Version**: Allow Python 3.10–3.14, including user-reported Colab 3.13 and observed local 3.14.7 / 3.10. Record the actual interpreter build; allowed metadata is not full pipeline verification.
 
-**Primary Dependencies**: YOLOv5 v7.0 source commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; initial compatibility targets torch 2.5.1 / torchvision 0.20.1, numpy 1.26.4, Pillow 9.5.0, opencv-python 4.10.0.84, PyYAML 6.0.2, pycocotools 2.0.10, pytest 8.3.5. D1 verifies imports/checkpoint loading and records tested environment versions; these pins have not been installed or tested during planning. Disable upstream automatic installation and unrequested external trackers. Preserve licenses and citations.
+**Primary Dependencies**: YOLOv5 v7.0 source commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; package bounds are torch >=2.5.1,<3, torchvision >=0.20.1,<1, numpy >=1.26.4,<3, Pillow >=9.5.0,<13, opencv-python >=4.10.0.84,<5, PyYAML >=6.0.2,<7, and pycocotools >=2.0.10,<3. Resolve a matched torch/torchvision pair with wheels for the actual interpreter/device; do not force the old Python-3.11 pins onto newer interpreters. D1 verifies imports/checkpoint loading and records exact tested environment locks. Address modern torch checkpoint-loading defaults and removed Pillow APIs at the pinned YOLO integration points, then verify training with the D3 smoke run. Disable upstream automatic installation and unrequested external trackers. Preserve licenses and citations.
 
 **Storage**: Local files. Ignore `data/`, `external/`, `artifacts/` and credentials. Track configurations, compact summaries, references, and instructions to retrieve team-accessible large artifacts. Hash assets, dataset manifests, checkpoints and saved resolved configs for identity; do not build a linked graph of record digests.
 
-**Testing**: Focused data-integrity and metric-correctness tests, plus one opt-in CPU pipeline smoke test. Small fixtures are private test helpers. No separate contract-test layer, public fixture generator, model-architecture tests, or repeated training as a routine PR check.
+**Testing**: No automated tests, test fixtures, or test dependencies (constitution v2.0.0 Principle VII, revised 2026-11-10). Verify by running the real commands and manually reviewing their outputs: preparation's built-in integrity checks and label overlays (D2), one short labeled smoke training run before the baseline (D3), image/video/empty/invalid inference runs (D4), and a hand count of matches on a few evaluated images (D5). No repeated training as a routine PR check.
 
-**Target Platform**: Single NVIDIA GPU/Linux or Colab for reported training; local Windows CPU setup/smoke checks. User confirmed this target. CUDA 12.1 is an initial installation profile subject to actual GPU/driver compatibility. Keep a tested environment file for each execution platform used, without a broad cross-platform CI matrix.
+**Target Platform**: Single NVIDIA GPU/Linux or Colab for reported training; local Windows CPU setup checks. User confirmed this target. Choose the CUDA wheel profile for the resolved torch version and actual GPU/driver; CUDA 12.1 was the original Python-3.11 proposal, not a fixed requirement. Keep a tested environment file for each execution platform used, without a broad cross-platform CI matrix.
 
 **Project Type**: One CLI package with six commands: assets sync, check, data prepare, train, infer, evaluate. No web service/database.
 
@@ -37,11 +37,13 @@ PASS means the design supplies controls, not that experiments or submissions hav
 | Gate | Design status | Control and evidence |
 | --- | --- | --- |
 | I Reproducible experiments | PASS | Dataset/manifest identities, preprocessing, model/initial weights, tested versions, seeds, settings, commands, hardware and nondeterminism in a run record |
-| II Reliable evaluation | PASS | Disjoint frozen splits, focused integrity/metric checks, validation-only selection, recorded selection before final test, defined AP/P/R and timing |
+| II Reliable evaluation | PASS | Disjoint frozen splits, built-in preparation integrity checks, manual metric review, validation-only selection, recorded selection before final test, defined AP/P/R and timing |
 | III Core first | PASS | D1–D5 integration reviewed before D6/D9; D9 has no required dependents |
 | IV Evidence for claims | PASS | Preserved results, checkpoint/config identities, successes/failures and limitations; failed attempts remain visible |
 | V Simple implementation | PASS | Direct established-library calls, six command handlers, local files, small checks; no general framework |
 | VI Integrity/AI transparency | PASS | Citations, per-task AI log, student report authorship |
+| VII No added tests | PASS (revised 2026-11-10) | No test modules, fixtures or pytest; normal runs plus manual review of outputs |
+| VIII–XI Workflow, comments, plain English, prior assignments | PASS | Applied per change: small reviewed commits, `AI: `/`SAMPLE: ` comment prefixes, plain wording, consult existing course work |
 | Course constraints | PASS | Separate course checklist with roles, access, deadlines, submissions, conflicts and audience follow-up |
 
 The authorized simplification preserves constitutional requirements and needs no governance amendment. Data access, actual environment compatibility, and course confirmations remain execution prerequisites.
@@ -87,11 +89,6 @@ src/driving_detection/
 ├── infer.py
 ├── evaluate.py
 └── records.py                 # only shared I/O/config/hash helpers actually used
-tests/
-├── conftest.py                # tiny generated fixtures
-├── test_data.py
-├── test_metrics.py
-└── test_smoke.py              # opt-in, one CPU pipeline pass
 docs/
 ├── usage.md                   # setup, inputs, outputs, experiments
 ├── references.md
@@ -113,28 +110,29 @@ artifacts/                    # ignored run outputs/checkpoints/media
 
 ## Delivery sequence and PR acceptance
 
-Each PR includes appropriate verification, usage updates, citations and its AI-use entry. Materially changed source/metric behavior warrants focused checks; routine prose/config edits do not justify new test suites.
+Each PR includes appropriate verification, usage updates, citations and its AI-use entry. Verify materially changed source/metric behavior by running it and reviewing the outputs; add no automated tests.
 
 | Unit / requirement ownership | Implementation scope | Evidence required to merge |
 | --- | --- | --- |
 | D1 / FR-001–004 | Packaging/CLI skeleton, asset download/import and reuse, tested environment notes, ignored paths and setup docs | Fresh/repeat setup and failed-download recovery checks; imports/official checkpoint loading; no training compatibility pipeline duplicated here |
-| D2 / FR-005–010 | BDD conversion, class mapping, geometry, eligible subset, split/manifests and YOLO/COCO exports | Focused integrity tests, repeatable manifests, real preparation counts and class coverage |
-| D3 / FR-011–014 | Direct upstream training wrapper, resolved settings and compact run record | Completed declared GPU baseline, loadable checkpoint and reproducibility evidence; the connected CPU smoke waits until D4/D5 are available |
+| D2 / FR-005–010 | BDD conversion, class mapping, geometry, eligible subset, split/manifests and YOLO/COCO exports | Built-in integrity check results, reviewed label overlays, repeatable manifests, real preparation counts and class coverage |
+| D3 / FR-011–014 | Direct upstream training wrapper, resolved settings and compact run record | A short labeled smoke training run, then the completed declared GPU baseline, loadable checkpoint and reproducibility evidence |
 | D4 / FR-015–017 | Direct inference/NMS wrapper, canonical predictions, image/video outputs and error handling | Image/video/empty/invalid examples; baseline integration verified when D3 is available |
-| D5 / FR-018–022 | Established AP evaluator, fixed P/R counts, one timing measurement, examples | Focused metric cases, baseline validation results and timing; manual review confirms integrated D1–D5 evidence |
+| D5 / FR-018–022 | Established AP evaluator, fixed P/R counts, one timing measurement, examples | Hand-checked match counts on a few evaluated images, baseline validation results and timing; manual review confirms integrated D1–D5 evidence |
 | D6 / FR-023–025 | Two ordinary validation evaluations, comparison table, selected configuration, ordinary test evaluation | Same checkpoint/protocol/device; recorded decision before final test; preserved negative/failed attempts |
 | D7 / FR-026–032 | Code handoff, completion inventory, course checklist, student report materials | Required report/code review; names/roles/references/links and pending external actions explicit |
 | D8 / FR-033–036 | Presentation materials/rehearsal, upload handoff, audience answers | Four topics, 5–10 minute readable/audible recording; submissions/follow-up pending until evidenced |
 | D9 / FR-037–039 | Optional capture notes and existing inference/evaluation commands | Capture conditions, qualitative limits or real labels for accuracy, evidence or explicit skip |
 
-**Dependencies and parallel work**: D1 → D2 → D3. D4 can develop after D1 and agreed D2 mapping using the official COCO checkpoint as a clearly marked reference. D5 metrics can develop against tiny canonical fixtures independently of training; actual baseline evidence needs D2/D3. D3/D4/D5 own separate modules. Manually review the integrated core before D6 or D9. D7/D8 preparation may start early; final claims use results or disclose partial completion. D9 cannot delay required work.
+**Dependencies and parallel work**: D1 → D2 → D3. D4 can develop after D1 and agreed D2 mapping using the official COCO checkpoint as a clearly marked reference. D5 metric code can develop independently of training and first runs on the D3 smoke checkpoint; actual baseline evidence needs D2/D3. D3/D4/D5 own separate modules. Manually review the integrated core before D6 or D9. D7/D8 preparation may start early; final claims use results or disclose partial completion. D9 cannot delay required work.
 
 ## Minimal verification and evidence
 
-- Automated data checks cover readability/annotation correspondence, target/excluded/unknown labels, inclusive-to-half-open box conversion, valid negatives, ignored samples, sequence/content overlap, class coverage, and repeatable selection. Combine related cases rather than duplicate unit/contract/integration tests of the same outcome.
-- Automated metric checks use known predictions for perfect/missed/false/duplicate/wrong-class/empty/IoU-boundary cases and absent-class handling. Reuse pycocotools AP; do not test upstream model internals.
-- One opt-in CPU smoke test trains a tiny fixture for one epoch, loads it, runs image/video inference, and invokes evaluation. It requires model assets, is run when the connected pipeline is available or materially changes, and does not repeat for every PR. Private fixtures use the same BDD-shaped importer, not another dataset product.
-- Verify setup reuse/checksum failures and inspect saved media with small operational checks. Add dedicated automation only if implementation complexity or a real failure warrants it.
+- No automated tests, test fixtures, or diagnostic-only scripts (Principle VII). Each deliverable is verified by running its real command and reviewing what it produced.
+- Data (D2): `data prepare` performs the required integrity checks itself (readability/annotation correspondence, target/excluded/unknown labels, box conversion, valid negatives, ignored samples, sequence/content overlap, class coverage, repeatable selection) and writes counts and reasons. A reviewer inspects those counts, a few label overlays, and a repeat run's identical manifest hashes.
+- Smoke (D3): one short training run with the normal `train` command (one epoch, size 320, batch 2, labeled smoke) on the prepared data, before the baseline. It confirms training compatibility only; its scores are never reported.
+- Metrics (D5): pycocotools computes AP. A reviewer hand-counts matches, misses, false detections and duplicates on a few evaluated images (including a no-object image where available) and compares them with the reported counts. Do not test upstream model internals.
+- Setup reuse/checksum failures and saved media are checked by running the commands and looking at the results.
 - Keep ordinary input checks where files are consumed: class/head compatibility, required values, hashes, finite boxes/scores and complete evaluation membership. No generic schema/lifecycle test suite.
 - Real measured claims require the actual GPU baseline, validation comparison and selected final test, not more synthetic tests. Full retraining is unnecessary for unrelated changes.
 
@@ -150,5 +148,5 @@ Compare sizes 640/960 on the same validation membership/checkpoint. Choose 960 o
 
 ## Complexity Tracking
 
-No constitution exceptions. Do not reintroduce a backend protocol, generic schema framework, command registry, experiment orchestrator, custom resume/exposure machinery, fixture-generation CLI, or separate contract-test suite during task generation. Add structure only when an implemented requirement demonstrates the need.
+No constitution exceptions. Do not reintroduce a backend protocol, generic schema framework, command registry, experiment orchestrator, custom resume/exposure machinery, fixture-generation CLI, or any automated test suite during task generation. Add structure only when an implemented requirement demonstrates the need.
 

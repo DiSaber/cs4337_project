@@ -13,7 +13,7 @@ These rules preserve correctness while keeping the implementation small. Use dir
 7. Rank eligible sequences by SHA256(UTF8("cs4337-v1:4337:"+sequence_id)), tie-breaking lexically. Take first 5,000 from official train. From official labeled val, first 1,000 become project val and next 1,000 become project test. Keep negatives; do not select only target-bearing scenes.
 8. Check requested counts, all target classes in each evaluated partition and zero sequence/content/parent overlap before freezing manifests. Fix failures with a recorded new profile before training; never change membership in response to model results. Training gets only train/val exports. The holdout is a project subset, not the official BDD benchmark.
 
-Preparation performs these checks itself; a separate validation command/service is unnecessary. Tiny test fixtures exercise the same importer and conversion rules.
+Preparation performs these checks itself and records counts and reasons; a separate validation command/service is unnecessary. A reviewer checks those records and a few label overlays from the real run.
 
 ## Training and inference
 
@@ -29,19 +29,19 @@ Decode/channel-convert correctly, deterministic aspect-preserving square-letterb
 
 Save complete image/frame records, including empty detections and explicit errors, plus annotated media. Check output video can be reopened with expected dimensions/frame count; missing encoders and partial processing are failures. No live stream or GUI requirement.
 
-## Evaluation and focused tests
+## Evaluation and manual verification
 
 Use pycocotools bbox COCOeval: IoUs 0.50:0.05:0.95, 101 recall points, all sizes, maxDets=[1,10,100]. Report aggregate/per-class AP50 and AP50:95, sample/class coverage and exact settings. Include every expected image, including negatives and empty predictions. Reject incomplete membership; normalize undefined/sentinel results to null with a reason. Missing expected classes fail actual-profile coverage.
 
 For fixed P/R, take the top 100 post-NMS predictions/image, retain score>=0.25, and greedily match within class/image by descending score to an unmatched GT with maximum IoU>=0.50. Break score ties by class/box and equal IoU ties by annotation ID. TP is a match, unmatched prediction FP, unmatched GT FN. Report per-class and aggregate micro P=TP/(TP+FP), R=TP/(TP+FN); zero denominators are null/reason. Do not relabel COCO average recall or YOLO's selected-F1 P/R as this fixed operating point.
 
-Keep two focused automated test modules:
-- Data: label/box conversion including one-pixel/boundary boxes, negatives, unknown/ignored/invalid annotations, provenance/duplicate overlap, repeatable membership and class coverage.
-- Metrics: known perfect/missed/false/duplicate/wrong-class/empty/absent-class and exact-IoU-threshold predictions. Duplicate matching is tested directly without NMS hiding the case. A duplicate ranked after full recall need not reduce interpolated AP but is FP at the operating point.
+There are no automated tests (constitution Principle VII). Verification uses normal runs and manual review:
+- Data: review preparation's recorded counts and reasons (unknown/ignored/invalid annotations, negatives, provenance/duplicate overlap, class coverage), a few label overlays including a small or edge box, and identical manifest hashes on a repeat run.
+- Metrics: on a few evaluated images (including a no-object image where available), a reviewer draws labels and predictions, hand-counts matches, misses, false detections and duplicates under the rules above, and compares them with the reported counts. A duplicate ranked after full recall need not reduce interpolated AP but is FP at the operating point.
 
-One opt-in CPU smoke test connects preparation, one-epoch tiny training at size 320/batch 2, checkpoint load, image/video inference and evaluation. Its generated BDD-shaped fixtures remain internal to tests. Skip it by default unless model assets and an explicit smoke opt-in are present; never treat its accuracy as a project result. Run it when the connected pipeline becomes available or materially changes, not on every PR.
+One short smoke training run uses the normal `train` command (one epoch, size 320, batch 2) on the prepared data before the baseline. Its checkpoint is then run through `infer` and `evaluate` to connect the pipeline early. Never treat its accuracy as a project result. Repeat it only when the connected pipeline materially changes.
 
-Check setup reuse/failure recovery and inspect output media operationally. Do not add parallel unit/contract/integration suites for the same behavior or tests of upstream model internals. Ordinary input/hash checks remain where required; add further tests only for demonstrated complexity or failures.
+Check setup reuse/failure recovery and inspect output media by running the commands. Ordinary input/hash checks in the pipeline remain where required; they are part of the solution, not tests.
 
 ## One timing measurement
 
