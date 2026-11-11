@@ -175,3 +175,65 @@ files.download(bundle)
 
 If training fails, keep the run directory (its `run.json` and `train.log` show the
 reason) and return it as well; a retry needs a new run ID such as `smoke-05`. IDs 01–03 are used.
+
+## D3 baseline training on Colab (T015)
+
+Status: **not yet run**. One attempt on 2026-11-11 lost its session during asset sync
+(see [experiments](../results/experiments.md)); `baseline-01` is unused.
+
+Run this from a Colab notebook in the browser, not the Colab CLI: the CLI could not
+mount Drive (it needs the browser consent prompt). Free Colab can end a session
+without warning, so the run folder is copied to Drive while training runs. Only the
+run folder goes to Drive (expected well under 100 MB: two YOLOv5s checkpoints of about
+14 MB, logs, `results.csv`, plots). The 5.9 GB dataset stays on the VM; it can be
+downloaded and prepared again.
+
+1. Select a T4 GPU runtime, clone `001-driving-object-detection-us3` with the clone
+   cell above, then mount Drive:
+
+   ```python
+   from google.colab import drive
+   drive.mount('/content/drive')
+   ```
+
+2. Run the install/sync/prepare cell and the hash comparison from the smoke section
+   above. Stop if any hash differs.
+
+3. Start a copy loop that keeps Drive up to date every 10 minutes. Training writes to
+   local disk; only the copy touches Drive.
+
+   ```bash
+   %%bash
+   mkdir -p /content/drive/MyDrive/cs4337/runs
+   nohup bash -c 'while true; do
+     [ -d /content/cs4337_project/artifacts/runs/baseline-01 ] && \
+       rsync -a /content/cs4337_project/artifacts/runs/baseline-01 /content/drive/MyDrive/cs4337/runs/
+     sleep 600
+   done' > /content/drive-sync.log 2>&1 &
+   ```
+
+4. Train in the foreground. A running cell keeps the runtime busy; keep the tab open.
+
+   ```bash
+   %%bash
+   set -euo pipefail
+   cd /content/cs4337_project
+   .venv-colab/bin/python -m driving_detection train \
+     --profile data/prepared/bdd-subset-v2/profile.json \
+     --config configs/train/baseline.yaml --run-id baseline-01 --device cuda:0
+   ```
+
+5. After it exits (success or failure), make a final copy before the runtime ends:
+
+   ```bash
+   %%bash
+   rsync -a /content/cs4337_project/artifacts/runs/baseline-01 /content/drive/MyDrive/cs4337/runs/
+   ls -la /content/drive/MyDrive/cs4337/runs/baseline-01 /content/drive/MyDrive/cs4337/runs/baseline-01/weights
+   ```
+
+Expected: exit 0, `status: completed` and the baseline label in `run.json`, 20 rows in
+`results.csv`, and `weights/best.pt` with the three canonical class names. If the
+session drops, the Drive copy holds the last checkpoints and log up to 10 minutes
+old; that partial folder is evidence of a failed/interrupted `baseline-01`, and the
+retry uses `baseline-02` (no resume). Then copy the folder from Drive to
+`artifacts/runs/` on the review machine for the T015 audit.
