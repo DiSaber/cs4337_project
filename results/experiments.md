@@ -265,7 +265,8 @@ lock's first install outside Colab.
 any project partition. Also a corrupt `.jpg` (text bytes), a `.txt` file, a plain
 gray 640 × 360 PNG, a 20-frame slideshow MP4 made from the five images, and an MJPG
 AVI cut in half (reports 10 frames, decodes 5). The slideshow only exercises the
-video code; it is not the T018 demo video.
+video code. A real driving-video demo is deferred to the optional D9 dashcam study
+(decision by Marc Benamou, 2026-11-11).
 
 | Run | Model | Input | Result |
 | --- | --- | --- | --- |
@@ -340,7 +341,7 @@ mAP@0.5:0.95 rose from 0.088 after epoch 0 to 0.237–0.240 over epochs 12–19,
 model had mostly stopped improving. These are upstream training-time numbers; the
 project evaluator result is T023.
 
-**Audit** (Claude Code; a teammate still needs to go through the FR-012 fields):
+**Audit** (checked by Claude Code; Marc Benamou reviewed and accepted it on 2026-11-11):
 - `run.json` has label `baseline`, `reportable_accuracy: true`, status, times,
   command, source tree hash `7bbe4263…`, initial weights `8b3b748c…`, profile and
   train/val manifest hashes (train `0f3b35bf…`, val `73d93c05…`), the exact upstream

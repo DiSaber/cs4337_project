@@ -23,7 +23,7 @@ do not need to be included.
   chosen epoch from `results.csv`, compared the resolved config, scanned the log and
   wrote the experiment record and retrieval notes.
 - Verification: All checks above passed (details in `results/experiments.md`). The
-  teammate audit of the FR-012 fields is still to be done.
+  Marc Benamou reviewed and accepted the FR-012 audit.
 
 ## 2026-11-11: D5 evaluator and smoke pipeline (T020–T022)
 
