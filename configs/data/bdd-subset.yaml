@@ -1,8 +1,12 @@
 # Frozen three-class BDD100K subset. Rules: specs/001-driving-object-detection/contracts/pipeline.md.
 # Changing any value here, or the source assets, requires a new profile_id.
-profile_id: bdd-subset-v1
+profile_id: bdd-subset-v2
 assets: configs/assets.yaml
-output: data/prepared/bdd-subset-v1
+output: data/prepared/bdd-subset-v2
+# v2: a sequence is a recording session (filename prefix before the first '-'),
+# with one image per session. v1 used full stems and let 121 sessions cross
+# val/test; it was never used for training or reported (see results/experiments.md).
+sequence_identity: name_prefix
 images: data/raw/images/100k                  # <official split>/<name>.jpg
 labels: data/raw/labels/100k                  # <official split>/<name>.json (2018 per-image release)
 classes: [car, pedestrian, traffic_light]     # canonical IDs 0, 1, 2

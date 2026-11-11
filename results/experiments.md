@@ -122,3 +122,68 @@ Status: **US1 accepted for merge to `main`; no new pipeline runs**.
 - Dataset settings: the BDD100K MD5s and extracted layouts in `configs/assets.yaml`
   match the official download documentation. Real dataset archives have still not
   been synced; D2 will be the first real check.
+
+## 2026-11-10: D2 data preparation (T009–T012)
+
+Status: **`bdd-subset-v2` prepared, checked and frozen**. Run on the Linux
+desktop (Debian 13, Python 3.13.5, CPU only) with a data-only `.venv` holding
+PyYAML 6.0.3 and Pillow 12.3.0 from the hash-pinned Linux lock.
+
+**Assets.** Both BDD archives were downloaded from the author mirror and matched
+their pinned SHA-256 values (images `afd149ea…`, labels `7f1f9043…`). The first
+`assets sync` extracted and fully hashed 100,000 files per archive in 35 s
+(images 5,791,783,234 bytes, tree `df88363e…`; labels 1,828,490,347 bytes, tree
+`473f38a8…`). A repeat sync, which now checks file count and size only, took
+2.3 s. The YOLO source receipt synced from Windows failed here only because of
+path ordering: recomputed with Windows ordering, it matched exactly
+(`220d504b…`, 144 files). The source was re-extracted from its cached,
+checksum-verified archive; the Windows copy is kept in
+`external/moved-aside-windows-receipt/`.
+
+**v1 rejected before use.** The first real run (`bdd-subset-v1`, full filename
+stem as sequence ID) passed every built-in check, but review found that 121
+filename prefixes (`<session>-<clip>`) appeared in both project val and test.
+Official train/val share only 1 of 42,167 train prefixes, the 6 exact-duplicate
+images formed pairs within one prefix, and two viewed val/test pairs showed the
+same camera, day and city on different streets. At the user's direction,
+`bdd-subset-v2` uses the prefix as a recording-session sequence ID and selects one
+image per session. v1 was never trained on or reported; it was deleted locally.
+
+**Counts (`bdd-subset-v2`).** Source: 70,000 train and 10,000 val image/label
+pairs, no missing pairs. Eligible: 69,993 train images in 42,164 sessions;
+9,991 val images in 5,930 sessions. Quarantined (16): 4 train + 5 val images from
+sessions in both official splits, 2 train + 4 val exact-duplicate images, 1 train
+image whose box was empty after clipping. No unknown categories, unreadable
+files or ignored regions.
+
+| Partition | Images (requested) | Negatives | car boxes / images | pedestrian | traffic_light | Clipped boxes |
+|---|---|---|---|---|---|---|
+| train | 5,000 (5,000) | 15 | 51,500 / 4,947 | 6,481 / 1,541 | 12,909 / 2,758 | 873 |
+| val | 1,000 (1,000) | 8 | 10,607 / 985 | 1,232 / 312 | 2,671 / 553 | 166 |
+| test | 1,000 (1,000) | 7 | 10,240 / 985 | 1,249 / 302 | 2,665 / 580 | 159 |
+
+**Integrity.** Zero cross-partition sequence and image-content overlap, all three
+classes in each partition, all 7,000 selected images fully decoded. A scratch
+check (not committed) found each session contributes at most one image and every
+sequence ID equals the name prefix. Rerunning `data prepare` printed "Reusing
+identical frozen profile".
+
+**Geometry review.** Converting all YOLO train/val labels back to pixels matched
+the manifest boxes within 0.001 px (6-decimal rounding); COCO val/test boxes
+matched exactly, with category IDs 1–3. Viewed overlays: a busy all-class scene,
+a night scene with a box clipped at the right edge (source x2 1279.36 → 1280), a
+negative image (traffic signs only), and the smallest box. Boxes fit their
+objects. Limits found: the smallest boxes come from zero-size source labels
+(x1 = x2 or y1 = y2) that the inclusive +1 rule turns into 1-pixel-wide slivers
+on empty road (26 train, 2 val, 5 test of about 100,000 boxes); one traffic-light
+label in the busy scene looks doubtful. Both are source-label noise kept as
+annotated, not conversion errors.
+
+**Retrieval.** Frozen output: `data/prepared/bdd-subset-v2/` on the Linux desktop
+(not in Git). Regenerate anywhere with the pinned archives and
+`python -m driving_detection data prepare --config configs/data/bdd-subset.yaml`;
+compare the `exports` hashes in `profile.json`, for example
+`manifest.train.jsonl` `0f3b35bf…`, `manifest.val.jsonl` `73d93c05…`,
+`manifest.test.jsonl` `42286df2…`, `coco.val.json` `26f8e1b9…`, YOLO train labels
+tree `b351ebac…`. `profile.json` itself also holds a creation time, so its own
+hash differs per run. Preparation has not yet been repeated on Windows.

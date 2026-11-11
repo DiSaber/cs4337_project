@@ -19,7 +19,7 @@ chose the revised Detection 2020 labels, but they can no longer be downloaded
   no label JSON, so it was rejected.
 
 Research allowed a separately identified legacy-label profile before the
-manifests were frozen. `bdd-subset-v1` records its label release
+manifests were frozen. `bdd-subset-v2` records its label release
 (`BDD100K-2018-labels-per-image`) in `profile.json`. The 2018 labels cover the same
 100K keyframes and use the categories `car`, `person` and `traffic light`. The 2020
 quality-check corrections are absent, and there are no ignored-region categories,

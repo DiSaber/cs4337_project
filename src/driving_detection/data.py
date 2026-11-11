@@ -16,6 +16,14 @@ from .assets import _definition, _local_output, _tree, _verified
 from .records import load_config, sha256_file, workspace_path, write_json
 
 PARTITIONS = ("train", "val", "test")
+# How a sample's sequence (the unit kept inside one partition) is identified.
+# name_prefix: names are <session>-<clip>; official train/val share 1 of 42,167
+# train prefixes and exact duplicate images occur only within a prefix, so the
+# prefix marks one recording session. full_stem treats every clip as independent.
+SEQUENCE_RULES = {
+    "full_stem": "filename_stem_one_keyframe_per_video",
+    "name_prefix": "filename_prefix_recording_session",
+}
 
 
 def _relative(path: Path) -> str:
@@ -33,6 +41,8 @@ def _check_settings(settings: dict) -> None:
     for key in ("non_targets", "ignored_regions", "non_box_prefixes"):
         if not isinstance(settings.get(key), list):
             raise ValueError(f"Data config needs a {key} list.")
+    if settings.get("sequence_identity", "full_stem") not in SEQUENCE_RULES:
+        raise ValueError(f"sequence_identity must be one of {sorted(SEQUENCE_RULES)}.")
     selection = settings.get("selection", {})
     if not isinstance(selection.get("key_prefix"), str) or any(
         not isinstance(selection.get(name), int) or selection[name] < 1 for name in PARTITIONS
@@ -119,9 +129,8 @@ def _read_sample(name: str, split: str, label_path: Path, image_path: Path, sett
         "width": width,
         "height": height,
         "source_partition": split,
-        # The 100K keyframe archive holds one frame per video, so the file stem is the video ID.
-        "sequence_id": name,
-        "sequence_provenance": "filename_stem_one_keyframe_per_video",
+        "sequence_id": name.split("-")[0] if settings.get("sequence_identity") == "name_prefix" else name,
+        "sequence_provenance": SEQUENCE_RULES[settings.get("sequence_identity", "full_stem")],
         "attributes": record.get("attributes") or {},
         "annotations": annotations,
         "non_target_boxes": dict(sorted(non_targets.items())),
@@ -157,14 +166,23 @@ def _collect(settings: dict) -> tuple[dict, list[dict], Counter]:
             if count % 10000 == 0:
                 print(f"  {count}/{len(names)}", flush=True)
 
-    # Quarantine anything whose sequence ID or image content appears more than once.
+    # Quarantine repeated image content, and sequences that cannot belong to one
+    # partition: with full stems a repeated ID is ambiguous; a session found in
+    # both official splits could otherwise reach both train and val/test.
     sequences = Counter(s["sequence_id"] for split in eligible.values() for s in split)
+    splits = {}
+    for split, samples in eligible.items():
+        for s in samples:
+            splits.setdefault(s["sequence_id"], set()).add(split)
     contents = Counter(s["image_sha256"] for split in eligible.values() for s in split)
+    by_session = settings.get("sequence_identity") == "name_prefix"
     for split in eligible:
         kept = []
         for sample in eligible[split]:
-            if sequences[sample["sequence_id"]] > 1:
+            if not by_session and sequences[sample["sequence_id"]] > 1:
                 reason = "duplicate_sequence"
+            elif len(splits[sample["sequence_id"]]) > 1:
+                reason = "sequence_in_both_official_splits"
             elif contents[sample["image_sha256"]] > 1:
                 reason = "duplicate_content"
             else:
@@ -180,15 +198,19 @@ def _rank(prefix: str, sequence_id: str) -> tuple[str, str]:
 
 
 def _select(eligible: dict, selection: dict) -> dict:
-    """Pick sequences by hash rank; fail rather than shrink a partition."""
-    ranked = {
-        split: sorted(samples, key=lambda s: _rank(selection["key_prefix"], s["sequence_id"]))
-        for split, samples in eligible.items()
-    }
+    """Pick sequences by hash rank, one image each; fail rather than shrink a partition."""
+    key = selection["key_prefix"]
+    ranked = {}
+    for split, samples in eligible.items():
+        # One representative image per sequence: the lowest-ranked sample ID.
+        chosen_image = {}
+        for s in sorted(samples, key=lambda s: _rank(key, s["sample_id"])):
+            chosen_image.setdefault(s["sequence_id"], s)
+        ranked[split] = sorted(chosen_image.values(), key=lambda s: _rank(key, s["sequence_id"]))
     needed_val = selection["val"] + selection["test"]
     if len(ranked["train"]) < selection["train"] or len(ranked["val"]) < needed_val:
         raise ValueError(
-            f"Not enough eligible samples: train {len(ranked['train'])}/{selection['train']}, "
+            f"Not enough eligible sequences: train {len(ranked['train'])}/{selection['train']}, "
             f"val {len(ranked['val'])}/{needed_val}. Record a new profile instead of changing the split."
         )
     chosen = {
@@ -365,15 +387,20 @@ def prepare(args, settings: dict) -> None:
             "coco_category_ids": {name: i + 1 for i, name in enumerate(classes)},
             "rules": {
                 "geometry": "Inclusive source xyxy -> half-open [x1, y1, x2+1, y2+1], clipped to the decoded image; empty or invalid boxes quarantine the sample.",
-                "sequence_identity": "Full filename stem (one keyframe per source video in the 100K archive).",
+                "sequence_identity": (
+                    "Filename prefix before the first '-' (one recording session); one image per session is selected."
+                    if settings.get("sequence_identity") == "name_prefix"
+                    else "Full filename stem (one keyframe per source video in the 100K archive)."
+                ),
                 "negatives": "Images with no target boxes are kept with annotations=[] and empty YOLO label files.",
                 "ignored_regions": "Images containing an ignored-region category or crowd box are excluded whole.",
-                "selection": "Rank eligible sequences by SHA256(key_prefix + sequence ID), ties by ID; first train from official train; first val then next test from official val.",
+                "selection": "Each sequence is represented by its sample with the lowest SHA256(key_prefix + sample ID). Rank eligible sequences by SHA256(key_prefix + sequence ID), ties by ID; first train from official train; first val then next test from official val.",
                 "holdout": "Project held-out subset of official labeled val; not the official BDD test benchmark.",
             },
             "counts": {
                 "source": dict(source_counts),
                 "eligible": {split: len(samples) for split, samples in eligible.items()},
+                "eligible_sequences": {split: len({s["sequence_id"] for s in samples}) for split, samples in eligible.items()},
                 "rejected": dict(sorted(rejected_counts.items())),
                 "requested": {p: settings["selection"][p] for p in PARTITIONS},
                 "partitions": {p: _partition_summary(chosen[p], classes) for p in PARTITIONS},

@@ -84,6 +84,47 @@ Runtime adapters allow the pinned checkpoint loader to use explicit
 removed font sizing method. Upstream source is unchanged; later training still
 needs its own integration verification.
 
+## Data preparation
+
+`data prepare` builds the frozen three-class subset `bdd-subset-v2` from the
+synced BDD assets. It needs only PyYAML and Pillow; no torch or GPU. On Linux
+with Python 3.13, a data-only environment can use the matching hash-pinned
+entries from the Linux lock (this is how D2 was prepared):
+
+```bash
+python3 -m venv .venv
+grep -E '^(pyyaml|pillow) ' requirements/cuda-lock.txt > /tmp/data-req.txt
+.venv/bin/python -m pip install --require-hashes -r /tmp/data-req.txt
+.venv/bin/python -m pip install --no-deps -e .
+.venv/bin/python -m driving_detection assets sync --config configs/assets.yaml
+.venv/bin/python -m driving_detection data prepare --config configs/data/bdd-subset.yaml
+```
+
+On Windows use `.venv/Scripts/python.exe` with the full CPU setup above.
+Preparation reads all 80,000 official train/val labels and image headers, takes
+about 25 s on the Linux desktop, and writes `data/prepared/bdd-subset-v2/`:
+`profile.json` (settings, asset identities, rules, counts, integrity results and
+export hashes), `manifest.{train,val,test}.jsonl`, `quarantine.jsonl` (every
+rejected image with its reason), `coco.val.json`/`coco.test.json` (category IDs
+1–3) and `yolo/` (train/val images as hard links, labels and `dataset.yaml`).
+The held-out test partition never reaches the YOLO export.
+
+What it checks: image/label pairing, known categories, box conversion
+(inclusive source pixels → half-open boxes clipped to the image), duplicate image
+content, exact requested counts, all three classes in every partition, and zero
+sequence or content overlap. Any failure stops before output is written.
+
+Sequences: a BDD name is `<session>-<clip>`. The session prefix is the sequence
+ID, and only one image per session is selected, so related clips never cross
+partitions. Sessions found in both official splits are quarantined. The test
+partition is a project holdout from official val, not the official BDD test set.
+
+Running it again with the same inputs prints "Reusing identical frozen profile"
+and changes nothing. If the config or assets change, it refuses to overwrite and
+asks for a new `profile_id` and output folder. Recorded counts and review are in
+[experiments](../results/experiments.md). Known label noise: about 30 boxes come
+from zero-size source labels and become 1-pixel-wide slivers.
+
 ## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated
@@ -105,9 +146,9 @@ python -m driving_detection evaluate --help
 
 On Linux, activate with `source .venv/bin/activate`. The build backend may need
 to be installed by pip. Help needs no torch, CUDA, PyYAML, weights or dataset.
-Asset sync and readiness check are implemented. Data/train/infer/evaluate still
-report an unimplemented-handler error and exit 1 without reading configs or
-creating run outputs. Invalid/missing arguments exit 2. The package-only install
+Asset sync, readiness check and data preparation are implemented. Train/infer/
+evaluate still report an unimplemented-handler error and exit 1 without reading
+configs or creating run outputs. Invalid/missing arguments exit 2. The package-only install
 above is enough for help, but model readiness requires the full runtime setup.
 
 ## Shared behavior for component implementation

@@ -45,7 +45,7 @@ Expected: preparation validates itself, records exclusions and negative counts, 
 There are no automated tests (constitution Principle VII). Before the baseline, run one short training with the normal command and the smoke settings (one epoch, size 320, batch 2):
 
 ```powershell
-python -m driving_detection train --profile data/prepared/bdd-subset-v1/profile.json --config configs/train/smoke.yaml --run-id smoke-01
+python -m driving_detection train --profile data/prepared/bdd-subset-v2/profile.json --config configs/train/smoke.yaml --run-id smoke-01
 ```
 
 Expected: a loadable checkpoint and a complete run.json, which confirms training works with the pinned source. Once infer/evaluate exist, run them on `artifacts/runs/smoke-01/weights/best.pt` to connect the pipeline early. Review the outputs, including an empty result and an invalid input, and hand-count matches on a few evaluated images against the reported counts. Smoke scores are never project findings. Repeat only when the connected pipeline materially changes.
@@ -55,7 +55,7 @@ Expected: a loadable checkpoint and a complete run.json, which confirms training
 On the selected GPU environment:
 
 ```powershell
-python -m driving_detection train --profile data/prepared/bdd-subset-v1/profile.json --config configs/train/baseline.yaml --run-id baseline-01
+python -m driving_detection train --profile data/prepared/bdd-subset-v2/profile.json --config configs/train/baseline.yaml --run-id baseline-01
 python -m driving_detection infer --model artifacts/runs/baseline-01/weights/best.pt --input data/new-scenes/images --config configs/evaluation/default.yaml --run-id baseline-images-01
 python -m driving_detection infer --model artifacts/runs/baseline-01/weights/best.pt --input data/new-scenes/demo.mp4 --config configs/evaluation/default.yaml --run-id baseline-video-01
 ```
@@ -67,7 +67,7 @@ Inspect original/annotated images and video, per-input predictions, valid empty 
 ## 5. Evaluate and manually review core — D5
 
 ```powershell
-python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v1/profile.json --partition val --config configs/evaluation/default.yaml --run-id baseline-val-01
+python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v2/profile.json --partition val --config configs/evaluation/default.yaml --run-id baseline-val-01
 ```
 
 Expected: predictions, run.json and metrics.json with AP50/AP50:95, micro/per-class P/R at the documented operating point, coverage/counts and null reasons where relevant. One synchronized interval measures preprocessing+transfer+forward+NMS over the fixed validation timing subset; record mean latency/throughput, hardware/input/batch/precision, warm-up/counts and excluded decoding/drawing/encoding. This does not claim full video-processing speed.
@@ -79,7 +79,7 @@ A reviewer confirms D1–D5 real-data/model identities, baseline, image/video ou
 The size-960 configuration differs only in inference size; compare against baseline-val-01:
 
 ```powershell
-python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v1/profile.json --partition val --config configs/evaluation/size-960.yaml --run-id candidate-val-01
+python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v2/profile.json --partition val --config configs/evaluation/size-960.yaml --run-id candidate-val-01
 ```
 
 Review identical model/validation membership/device/precision/environment and timing samples. Record both results, hypothesis and tradeoff in results/comparison.md. Choose 960 only with AP50:95 gain>=0.005 and mean latency ratio<=1.5; otherwise retain 640. Failed/worse attempts remain evidence; an incomplete comparison is labeled partial.
@@ -87,7 +87,7 @@ Review identical model/validation membership/device/precision/environment and ti
 Before reading final test results, save results/selected.yaml with chosen checkpoint and hash, profile/manifest hashes, saved resolved evaluation config and hash, environment file and hash, validation run references, choice reason and time. Point config_path to the chosen validation run's saved resolved config, so final evaluation reuses the actual selected values.
 
 ```powershell
-python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v1/profile.json --partition test --config artifacts/runs/baseline-val-01/resolved-config.yaml --selection results/selected.yaml --run-id final-01
+python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt --profile data/prepared/bdd-subset-v2/profile.json --partition test --config artifacts/runs/baseline-val-01/resolved-config.yaml --selection results/selected.yaml --run-id final-01
 ```
 
 The example assumes size 640 won. If 960 won, use candidate-val-01/resolved-config.yaml instead. Expected: selected fields/hashes match actual inputs before processing; final results use all project-held-out samples and record any failure/attempt in ordinary run.json. There is no exposure ledger. Later changes after test inspection are exploratory on that holdout, while exact reruns are labeled reproduction.

@@ -17,20 +17,30 @@ do not need to be included.
   every file; the user chose one full pass, then size-only reuse checks.
 - Limits: A same-size edit to an extracted file is not detected on reuse.
 
-## 2026-11-10: D2 data acquisition and preparation code (T009–T011, in progress)
+## 2026-11-10: D2 data acquisition and preparation (T009–T012)
 
-- Task: Obtain BDD100K data and implement `data prepare` (conversion, selection,
-  integrity checks, YOLO/COCO exports).
+- Task: Obtain BDD100K data, implement `data prepare` (conversion, selection,
+  integrity checks, YOLO/COCO exports), run it and review the result.
 - Assistance: Claude Code searched for the Detection 2020 labels. The official hosts
   are offline and no copy matching the published MD5 exists, so it switched to the
   2018 per-image labels from the author mirror (recorded in `docs/references.md` and
-  research R2). It allowed HTTP asset URLs only with a pinned SHA-256, and wrote
-  `src/driving_detection/data.py` and `configs/data/bdd-subset.yaml`.
-- Verification so far: all 80,000 official train/val label files parsed with known
-  categories (1 box empty after clipping, 340 negatives, 12,981 clipped boxes) in an
-  ad hoc check, not committed. The rejected mirror file was inspected (images, no
-  label JSON). The real `data prepare` run and its review (T012) are still pending
-  while the 5.7 GB image archive downloads.
+  research R2). It allowed HTTP asset URLs only with a pinned SHA-256. The mirror's
+  image archive does not match the published MD5 either: it is a repack with images
+  at `100k/<split>/`; a fresh re-download of the first 1.5 GB matched and all 100,000
+  member CRCs passed, so its measured SHA-256 is pinned. Claude Code wrote
+  `src/driving_detection/data.py` and `configs/data/bdd-subset.yaml`, ran preparation
+  on the Linux desktop, and found during review that v1 let 121 recording-session
+  name prefixes cross val/test. At the user's direction it added
+  `sequence_identity: name_prefix` (one image per session) and produced
+  `bdd-subset-v2`, updating research R4, the pipeline contract, tasks and quickstart.
+- Verification: Both archives matched their pinned SHA-256. `data prepare` passed its
+  built-in checks (exact counts, three classes per partition, zero sequence/content
+  overlap, 7,000 decoded images) and a second run reused the identical profile.
+  Scratch checks (not committed) confirmed one image per session, zero shared
+  prefixes, YOLO/COCO boxes matching the manifest, and overlays of a busy scene, a
+  clipped edge box, a negative and the smallest box. Details in `results/experiments.md`.
+- Limits: About 30 zero-size source boxes are kept as 1-pixel slivers. Preparation was
+  not repeated on Windows. No training has used the data yet.
 
 ## 2026-11-10: Constitution 2.1.0 and large-data sync exclusions
 
