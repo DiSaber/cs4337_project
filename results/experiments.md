@@ -420,3 +420,29 @@ five BDD official-test images, copied to `data/new-scenes/images/` (SHA-256 pref
 COCO model, the baseline does not box the ego car's hood, but it calls a white truck a
 car (0.34); trucks are a separate, non-target BDD class. These images come from the
 same dataset and cameras as training, so they are new scenes, not new conditions.
+
+## 2026-11-11: D6 test-selection checks, comparison and selection (T024–T026)
+
+Status: **selection frozen before the test set was read**; the final test run (T027)
+has not been run.
+
+**Test-selection checks (T024).** All runs used the normal `evaluate` command on the
+Linux desktop CPU:
+
+| Run | Input | Result |
+| --- | --- | --- |
+| `refuse-test-nosel-01` | `--partition test` without `--selection` | refused by the argument parser; no run folder |
+| `refuse-test-config-01` | real selection, `size-960.yaml` config | refused: "config is configs/evaluation/size-960.yaml, selected configs/evaluation/default.yaml" |
+| `refuse-test-tampered-01` | copy of the selection with a wrong checkpoint hash and torch 2.9.0 | refused, listing both differences |
+
+Both refused runs left only `run.json` (status `failed`, with the reason) and
+`resolved-config.yaml`: no predictions, so no test image was read. Calling the check
+directly with the real selection and matching inputs passed. That call reads only the
+selection and hashes files.
+
+**Comparison and selection (T025–T026).** `candidate-val-01` (size 960) against
+`baseline-val-02` (size 640): AP50:95 0.2619 against 0.2387 (+0.023), but 50.5 ms
+against 26.4 ms per image on CPU (× 1.91). The declared rule needs a gain of at least
+0.005 and a ratio of at most 1.5, so **size 640 is kept**. The full table is in
+[comparison](comparison.md). `results/selected.yaml` was saved at
+2026-11-11T22:06:12Z, before any test-partition image was read.

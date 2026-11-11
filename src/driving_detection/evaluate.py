@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 from .infer import REQUIRED, _environment, _relative, detect, draw, load_detector, model_record, read_image
-from .records import project_revision, sha256_file, write_json
+from .records import load_config, project_revision, sha256_file, workspace_path, write_json
 from .train import CLASS_NAMES
 
 # Fixed operating point for precision/recall (contracts/pipeline.md).
@@ -45,6 +45,43 @@ def _inputs(profile_path: Path, partition: str) -> tuple[list[dict], dict, dict]
         "ground_truth": {"path": _relative(coco_path), "sha256": sha256_file(coco_path)},
     }
     return samples, coco, record
+
+
+SELECTION_FILES = ("checkpoint", "profile", "manifest", "ground_truth", "config", "environment")
+SELECTION_FIELDS = (*SELECTION_FILES, "device", "torch", "validation_runs", "reason", "recorded_at")
+
+
+def _check_selection(args) -> dict:
+    """Compare the saved selection with the actual inputs before any test image is read.
+
+    The selection names each input file with its SHA-256. The test run must use those
+    exact files, the same device and the same torch version, or it is refused.
+    """
+    import torch
+
+    selection = load_config(args.selection)
+    missing = [key for key in SELECTION_FIELDS if key not in selection]
+    if missing:
+        raise ValueError(f"{args.selection} is missing: {', '.join(missing)}")
+    prepared = args.profile.parent
+    actual = {"checkpoint": args.model, "profile": args.profile, "manifest": prepared / "manifest.test.jsonl",
+              "ground_truth": prepared / "coco.test.json", "config": args.config,
+              "environment": workspace_path(selection["environment"]["path"])}
+    differences = []
+    for key in SELECTION_FILES:
+        selected, path = selection[key], actual[key]
+        if workspace_path(selected["path"]) != path.resolve():
+            differences.append(f"{key} is {_relative(path)}, selected {selected['path']}")
+        elif not path.is_file() or sha256_file(path) != selected["sha256"]:
+            differences.append(f"{key} {_relative(path)} differs from the selected bytes")
+    if args.device != selection["device"]:
+        differences.append(f"device is {args.device}, selected {selection['device']}")
+    if torch.__version__ != selection["torch"]:
+        differences.append(f"torch is {torch.__version__}, selected {selection['torch']}")
+    if differences:
+        raise ValueError(f"Test evaluation refused before reading any test image: {'; '.join(differences)}.")
+    return {"path": _relative(args.selection), "sha256": sha256_file(args.selection),
+            "validation_runs": selection["validation_runs"], "recorded_at": selection["recorded_at"]}
 
 
 def _coco_ap(coco: dict, detections: list[dict]) -> tuple[dict, dict]:
@@ -237,13 +274,12 @@ def evaluate(args, settings: dict) -> None:
         raise ValueError(f"Evaluation config is missing: {', '.join(missing)}")
     if settings["precision"] != "fp32":
         raise ValueError("Only precision fp32 is supported.")
-    if args.partition == "test":
-        # AI: T024 adds the --selection checks; until then test images are never read.
-        raise ValueError("Test evaluation needs the selection checks from T024, which are not implemented yet.")
-
     run_dir = args.run_dir
     record_path = run_dir / "run.json"
     record = json.loads(record_path.read_text(encoding="utf-8"))
+    if args.partition == "test":
+        record["selection"] = _check_selection(args)
+        write_json(record_path, record)
     samples, coco, data_record = _inputs(args.profile, args.partition)
     model, head = load_detector(args.model, args.device, reference_coco=False)
     record.update(project_revision=project_revision(), model=model_record(args.model, head), data=data_record,

@@ -4,6 +4,18 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: D6 selection checks, comparison and selection (T024–T026)
+
+- Task: Guard the test partition, compare size 960 against 640 on validation, and
+  freeze the selection.
+- Assistance: Claude Code added the `--selection` checks to `evaluate.py`, created
+  `configs/evaluation/size-960.yaml`, ran `candidate-val-01`, applied the declared
+  rule and wrote `results/comparison.md` and `results/selected.yaml`.
+- Verification: Refusals were run with the normal command (no selection, wrong
+  config, tampered hashes) and left no predictions; a direct check with the real
+  selection passed; comparability (checkpoint, profile, timing list, environment)
+  was confirmed from both run records. No test image has been read.
+
 ## 2026-11-11: Baseline validation evaluation (T023 part, T018 images)
 
 - Task: Evaluate `baseline-01` on validation, pick success/failure examples and run

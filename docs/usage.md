@@ -237,8 +237,7 @@ python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/
 Before reading any image it checks that the manifest and COCO ground truth still
 match the profile hashes and list the same samples, and that the checkpoint has the
 three canonical classes. Each image's bytes must match its manifest hash. Any failed
-image stops the run before metrics, because metrics need the whole partition. The
-test partition is refused until the selection checks (T024) exist.
+image stops the run before metrics, because metrics need the whole partition.
 
 `metrics.json` holds:
 
@@ -285,6 +284,30 @@ Untested: fog (no foggy images in validation), tunnels and parking lots (3 and 4
 images), cameras other than BDD's dashcams (different mounting height, lens, or
 resolution), footage from outside the US cities BDD covers, and full video-processing
 speed. Timing so far is CPU-only on one desktop.
+
+## Candidate comparison and test selection
+
+`results/comparison.md` compares the baseline at size 640 with the same checkpoint
+at size 960 (`configs/evaluation/size-960.yaml`) on validation. The declared rule
+kept 640 (960 gained 0.023 AP50:95 but was 1.91 times slower on CPU).
+
+`results/selected.yaml` freezes what the one final test evaluation must use: the
+checkpoint, profile, test manifest, COCO test labels, evaluation config and
+environment lock (each with its SHA-256), plus device, torch version, the two
+validation runs, the reason and the time it was saved. Run the test evaluation with:
+
+```bash
+python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt \
+  --profile data/prepared/bdd-subset-v2/profile.json --partition test \
+  --selection results/selected.yaml --config configs/evaluation/default.yaml \
+  --run-id final-01 --device cpu
+```
+
+Before reading any test image it compares every selected file's path and bytes, the
+device and the torch version with the actual inputs, and refuses with a list of the
+differences. A refused or failed attempt still leaves its `run.json`. Run it once.
+Running it again with the same selection is a reproduction, and any change made after
+seeing test results is exploratory; neither is a new unbiased result on this holdout.
 
 ## CLI help and package-only setup
 

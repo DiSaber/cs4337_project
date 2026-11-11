@@ -1,0 +1,30 @@
+# Frozen selection for the final test evaluation (T026). Saved before any test image was read.
+# `evaluate --partition test --selection results/selected.yaml` refuses to run unless every
+# file below has these exact bytes and the device and torch version match.
+checkpoint:
+  path: artifacts/runs/baseline-01/weights/best.pt
+  sha256: 8a1f80c8ab1fb84639709f7f1f07f36d6e9d3ef53cf51aec9432fa27d70dd1cb
+profile:
+  path: data/prepared/bdd-subset-v2/profile.json
+  sha256: 618c470d9b63b89f25caf5601ec0813643cdb2f189227bd863dc3599553789d3
+manifest:
+  path: data/prepared/bdd-subset-v2/manifest.test.jsonl
+  sha256: 42286df26bc61943244c51aa51e5702a65dec4e8a7a3d2611a08abe14d6a76fb
+ground_truth:
+  path: data/prepared/bdd-subset-v2/coco.test.json
+  sha256: 278a79e3928dad12dfdb94c356525cefddb5e51b737d1b449db2360f3e7267c1
+config:
+  path: configs/evaluation/default.yaml
+  sha256: 7b4fbffe46cbf5272ffc39e45d8a7e835e45ab7993696230f2b7598bc4955164
+environment:
+  path: requirements/cuda-lock.txt
+  sha256: c42c6384cf5a787390217098dba625212d1e0044b10848ae66a48f582b3b1354
+device: cpu
+torch: 2.9.1+cu128
+validation_runs:
+  baseline: artifacts/runs/baseline-val-02
+  candidate: artifacts/runs/candidate-val-01
+reason: >-
+  Size 960 gained 0.0232 AP50:95 (rule needs >= 0.005) but was 1.91 times slower
+  (rule allows <= 1.5), so the declared rule keeps size 640. See results/comparison.md.
+recorded_at: '2026-11-11T22:06:12Z'
