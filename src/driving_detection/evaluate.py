@@ -9,7 +9,7 @@ import platform
 import time
 from pathlib import Path
 
-from .infer import REQUIRED, _environment, _relative, detect, load_detector, model_record, read_image
+from .infer import REQUIRED, _environment, _relative, detect, draw, load_detector, model_record, read_image
 from .records import project_revision, sha256_file, write_json
 from .train import CLASS_NAMES
 
@@ -152,6 +152,52 @@ def _cpu_name() -> str:
     return platform.processor() or platform.machine()
 
 
+EXAMPLE_RULE = (
+    "Success: the first sample in manifest order where the class has labels and every label and prediction "
+    "of that class matched (TP >= 1, FP = 0, FN = 0). Failure: the first where the class has at least one miss "
+    "and one false detection; if there is none, the first with any miss or false detection."
+)
+
+
+def _examples(samples: list[dict], per_image: dict, run_dir: Path) -> dict:
+    """Pick one success and one failure per class by EXAMPLE_RULE and save overlays."""
+    import cv2
+
+    predictions = {}
+    with (run_dir / "predictions.jsonl").open(encoding="utf-8") as lines:
+        for line in lines:
+            record = json.loads(line)
+            predictions[record["input_id"]] = record["predictions"]
+    folder = run_dir / "examples"
+    folder.mkdir()
+    chosen = {"rule": EXAMPLE_RULE,
+              "overlay": "Labels green; predictions in the top 100 with score >= 0.25 in class colors."}
+    for class_id, name in enumerate(CLASS_NAMES):
+        def find(test):
+            return next((sample for sample in samples if test(per_image[sample["sample_id"]][class_id])), None)
+
+        cases = {
+            "success": find(lambda c: c["tp"] >= 1 and c["fp"] == 0 and c["fn"] == 0),
+            "failure": find(lambda c: c["fn"] >= 1 and c["fp"] >= 1) or find(lambda c: c["fn"] >= 1 or c["fp"] >= 1),
+        }
+        chosen[name] = {}
+        for kind, sample in cases.items():
+            if sample is None:
+                chosen[name][kind] = {"sample_id": None, "reason": "No validation sample meets the rule."}
+                continue
+            image = read_image(Path(sample["image_path"]))[0]
+            shown = sorted(predictions[sample["sample_id"]], key=lambda p: -p["score"])[:PR_TOP_K]
+            overlay = draw(image, shown, PR_SCORE)
+            for annotation in sample["annotations"]:
+                x1, y1, x2, y2 = (round(v) for v in annotation["bbox_xyxy"])
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), (0, 200, 0), 1)
+            path = folder / f"{name}-{kind}-{sample['sample_id']}.jpg"
+            path.write_bytes(cv2.imencode(".jpg", overlay)[1].tobytes())
+            chosen[name][kind] = {"sample_id": sample["sample_id"], "image": sample["image_path"], "overlay": _relative(path),
+                                  "attributes": sample.get("attributes", {}), **per_image[sample["sample_id"]][class_id]}
+    return chosen
+
+
 def _timing(model, head: dict, samples: list[dict], settings: dict, device: str) -> dict:
     """Time preprocessing through NMS on the first samples, with decoding done beforehand."""
     import torch
@@ -210,7 +256,7 @@ def evaluate(args, settings: dict) -> None:
         x, y, width, height = annotation["bbox"]
         truths_by_image[annotation["image_id"]].append({"annotation_id": annotation["annotation_id"], "class_id": annotation["category_id"] - 1,
                                                         "bbox_xyxy": [x, y, x + width, y + height]})
-    detections, failures, empty, invalid = [], [], 0, 0
+    detections, failures, empty, invalid, per_image = [], [], 0, 0, {}
     totals = {class_id: {"tp": 0, "fp": 0, "fn": 0} for class_id in range(len(CLASS_NAMES))}
     with (run_dir / "predictions.jsonl").open("w", encoding="utf-8") as output:
         for number, sample in enumerate(samples, 1):
@@ -230,7 +276,9 @@ def evaluate(args, settings: dict) -> None:
                     x1, y1, x2, y2 = prediction["bbox_xyxy"]
                     detections.append({"image_id": image_id, "category_id": prediction["class_id"] + 1,
                                        "bbox": [x1, y1, x2 - x1, y2 - y1], "score": prediction["score"]})
-                for class_id, counts in match_image(predictions, truths_by_image[image_id]).items():
+                matched = match_image(predictions, truths_by_image[image_id])
+                per_image[sample["sample_id"]] = matched
+                for class_id, counts in matched.items():
                     for key in counts:
                         totals[class_id][key] += counts[key]
             if line["status"] == "failed":
@@ -253,6 +301,7 @@ def evaluate(args, settings: dict) -> None:
     aggregate, per_class_ap = _coco_ap(coco, detections)
     micro = _precision_recall(*(sum(totals[c][key] for c in totals) for key in ("tp", "fp", "fn")))
     per_class = {name: {**per_class_ap[name], **_precision_recall(**totals[index])} for index, name in enumerate(CLASS_NAMES)}
+    examples = _examples(samples, per_image, run_dir)
     print("Timing ...")
     timing = _timing(model, head, samples, settings, args.device)
     metrics = {
@@ -273,6 +322,7 @@ def evaluate(args, settings: dict) -> None:
         "per_class": per_class,
         "undefined": {key: value for key, value in {**aggregate, **micro}.items() if key.endswith("reason")},
         "timing": timing,
+        "examples": examples,
     }
     write_json(run_dir / "metrics.json", metrics)
     record["metrics"] = _relative(run_dir / "metrics.json")

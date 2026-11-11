@@ -4,6 +4,18 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Baseline validation evaluation (T023 part, T018 images)
+
+- Task: Evaluate `baseline-01` on validation, pick success/failure examples and run
+  it on new-scene images.
+- Assistance: Claude Code added rule-based example selection and overlays to
+  `evaluate.py`, ran `baseline-val-01/-02` and `baseline-images-01` on CPU, reviewed
+  the overlays and wrote the results and limitations.
+- Verification: Two evaluation runs gave byte-identical predictions and identical
+  metrics; the project AP agrees with upstream's training-time validation; failure
+  overlays were inspected by eye. No test-partition data was read. Reviewer check
+  and the video demo are still open.
+
 ## 2026-11-11: D3 baseline audit (T015)
 
 - Task: Check and record the completed `baseline-01` training run.

@@ -262,6 +262,30 @@ test partition is refused until the selection checks (T024) exist.
 `predictions.jsonl` has one line per sample in the `infer` format, and `run.json` has
 the model, data and config identities and counts.
 
+## Baseline results and limits
+
+The reference validation result is `artifacts/runs/baseline-val-02/` (details and
+numbers in [experiments](../results/experiments.md)). Repeat it with the evaluation
+command above and a new run ID; on the same machine the predictions repeat exactly.
+
+Known limits, from the validation set (1,000 images: 559 day, 361 night, 74
+dawn/dusk; 524 clear, 142 overcast, 87 snowy, 73 rainy, 71 partly cloudy, 103 weather
+undefined; 600 city street, 248 highway, 139 residential) and the example overlays:
+
+- Small objects are much harder: AP50:95 is 0.097 for small boxes against 0.42 for
+  large ones. Distant cars and most traffic lights are small.
+- At night, glare, flare and smears on the windshield hide traffic lights.
+- Crowds and rows of parked cars cause merged, split and missed boxes.
+- Pedestrian countdown signals can be mistaken for traffic lights, and trucks for cars
+  (BDD labels trucks separately and they are not a target class).
+- Per-condition accuracy (day against night, rain, snow) has not been measured; the
+  points above are observations from examples, not measured differences.
+
+Untested: fog (no foggy images in validation), tunnels and parking lots (3 and 4
+images), cameras other than BDD's dashcams (different mounting height, lens, or
+resolution), footage from outside the US cities BDD covers, and full video-processing
+speed. Timing so far is CPU-only on one desktop.
+
 ## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated
