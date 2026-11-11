@@ -420,3 +420,75 @@ five BDD official-test images, copied to `data/new-scenes/images/` (SHA-256 pref
 COCO model, the baseline does not box the ego car's hood, but it calls a white truck a
 car (0.34); trucks are a separate, non-target BDD class. These images come from the
 same dataset and cameras as training, so they are new scenes, not new conditions.
+
+## 2026-11-11: D6 test-selection checks, comparison and selection (T024–T026)
+
+Status: **selection frozen before the test set was read**; the final test run (T027)
+has not been run.
+
+**Test-selection checks (T024).** All runs used the normal `evaluate` command on the
+Linux desktop CPU:
+
+| Run | Input | Result |
+| --- | --- | --- |
+| `refuse-test-nosel-01` | `--partition test` without `--selection` | refused by the argument parser; no run folder |
+| `refuse-test-config-01` | real selection, `size-960.yaml` config | refused: "config is configs/evaluation/size-960.yaml, selected configs/evaluation/default.yaml" |
+| `refuse-test-tampered-01` | copy of the selection with a wrong checkpoint hash and torch 2.9.0 | refused, listing both differences |
+
+Both refused runs left only `run.json` (status `failed`, with the reason) and
+`resolved-config.yaml`: no predictions, so no test image was read. Calling the check
+directly with the real selection and matching inputs passed. That call reads only the
+selection and hashes files.
+
+**Comparison and selection (T025–T026).** `candidate-val-01` (size 960) against
+`baseline-val-02` (size 640): AP50:95 0.2619 against 0.2387 (+0.023), but 50.5 ms
+against 26.4 ms per image on CPU (× 1.91). The declared rule needs a gain of at least
+0.005 and a ratio of at most 1.5, so **size 640 is kept**. The full table is in
+[comparison](comparison.md). `results/selected.yaml` was saved at
+2026-11-11T22:06:12Z, before any test-partition image was read.
+
+## 2026-11-11: D6 final held-out test (T027)
+
+Status: **final result on the project's held-out test subset**. Marc Benamou confirmed
+the selection first. This is the one unbiased test result for `bdd-subset-v2`'s test
+partition; any later run on it is a reproduction (same selection) or exploratory
+(anything changed after seeing these numbers).
+
+**Run.** `final-01`, the saved command in [usage](../docs/usage.md) with
+`results/selected.yaml` (SHA-256 `8e5fcf8c…`): checkpoint `baseline-01/best.pt`
+(`8a1f80c8…`), size 640, FP32, CPU (AMD Ryzen 9 9950X, 16 threads), torch
+2.9.1+cu128, project commit `fc70dbf` with no local changes. All selection checks
+passed. 1,000 of 1,000 test images processed, none failed; 7 have no targets;
+10,240 car, 1,249 pedestrian and 2,665 traffic-light labels. No undefined values.
+Took 38 s.
+
+| Project held-out test (1,000 images) | AP50 | AP50:95 | Precision | Recall | TP | FP | FN |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| All (micro P/R) | 0.526 | 0.236 | 0.624 | 0.607 | 8,594 | 5,189 | 5,560 |
+| car | 0.656 | 0.367 | 0.648 | 0.652 | 6,678 | 3,631 | 3,562 |
+| pedestrian | 0.452 | 0.192 | 0.543 | 0.455 | 568 | 479 | 681 |
+| traffic light | 0.469 | 0.150 | 0.555 | 0.506 | 1,348 | 1,079 | 1,317 |
+
+Same definitions as validation (pycocotools AP; precision/recall at the top 100
+boxes, score >= 0.25, IoU >= 0.5). By box size, AP50:95 is 0.100 small, 0.338 medium
+and 0.626 large. Test results are close to validation (AP50:95 0.236 against 0.239,
+AP50 0.526 against 0.521), so the validation numbers were not optimistic. Large-box
+AP differs more (0.626 against 0.421); this was not investigated.
+
+**Timing.** First 100 test samples (list hash `223404f1…`), 10 warm-ups, batch 1,
+FP32, CPU: 26.5 ms per image, 37.7 images/s, same stages as validation.
+
+**Examples** (overlays in `artifacts/runs/final-01/examples/`, same rule as
+validation). All six picked samples happen to be clear-weather night city streets:
+
+| Class | Success (TP/FP/FN) | Failure (TP/FP/FN) |
+| --- | --- | --- |
+| car | `b257f482-cf55d35c` (4/0/0) | `b1ca2e5d-84cf9134` (6/3/2) |
+| pedestrian | `b23adb0d-8a7aaced` (1/0/0) | `b1ca2e5d-84cf9134` (8/5/10) |
+| traffic light | `b28fc734-5add25db` (2/0/0) | `b1d8735d-eee9f184` (1/2/1) |
+
+The pedestrian failure is a crowded, brightly lit night street with signs and video
+screens: 10 of 18 people are missed and several boxes are merged or offset in the
+crowd, matching the crowd weakness seen on validation.
+
+**Retrieval.** `artifacts/runs/final-01/` on the Linux desktop (not in Git).
