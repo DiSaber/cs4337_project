@@ -178,8 +178,9 @@ reason) and return it as well; a retry needs a new run ID such as `smoke-05`. ID
 
 ## D3 baseline training on Colab (T015)
 
-Status: **not yet run**. One attempt on 2026-11-11 lost its session during asset sync
-(see [experiments](../results/experiments.md)); `baseline-01` is unused.
+Status: **run on 2026-11-11** (`baseline-01` completed in 0.82 h on a T4; see
+[experiments](../results/experiments.md)). An earlier attempt lost its session during
+asset sync before any run directory was created.
 
 The ready-made notebook [`notebooks/t015_baseline_colab.ipynb`](../notebooks/t015_baseline_colab.ipynb)
 contains the steps below as cells (upload it with File > Upload notebook).
