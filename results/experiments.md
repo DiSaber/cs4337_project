@@ -247,3 +247,43 @@ unknown. Preparation and training never started, so no run directory exists and
 
 **Retrieval.** `artifacts/runs/smoke-0{1,2,3}/` on the Linux desktop (not in Git;
 about 30 MB). Repeat with the Colab steps in [colab-setup](../docs/colab-setup.md).
+
+## 2026-11-11: D4 inference development check (T016–T017)
+
+Status: **inference code works on images, folders and video, including the failure
+cases**. These are development runs with the official COCO reference checkpoint and
+the `smoke-03` checkpoint. None of their accuracy is a project result.
+
+**Environment.** Linux desktop, CPU only (no GPU), Python 3.13.5. The hash-checked
+`requirements/cuda-lock.txt` was installed into the existing `.venv` (torch
+2.9.1+cu128 runs on CPU); `pip check` found no broken requirements. This is the
+lock's first install outside Colab.
+
+**Inputs** (kept in a temporary folder, not in the repository): five BDD official
+`100k/test` images (`cabc30fc-e7726578`, `cabc30fc-eb673c5a`, `cabc30fc-fd79926f`,
+`cabc9045-1b8282ba`, `cabc9045-581f64de`). The official test split is not used by
+any project partition. Also a corrupt `.jpg` (text bytes), a `.txt` file, a plain
+gray 640 × 360 PNG, a 20-frame slideshow MP4 made from the five images, and an MJPG
+AVI cut in half (reports 10 frames, decodes 5). The slideshow only exercises the
+video code; it is not the T018 demo video.
+
+| Run | Model | Input | Result |
+| --- | --- | --- | --- |
+| `dev-ref-images-01` | reference | 5 test images | completed; 113–300 boxes each at the 0.001 floor |
+| `dev-ref-gray-01` | reference | gray PNG | completed; valid empty result `"predictions": []` |
+| `dev-smoke-edge-01` | smoke-03 | corrupt jpg, gray png, txt | failed, exit 1; corrupt and txt have failed lines with reasons, gray png still processed |
+| `dev-smoke-video-01` | smoke-03 | 20-frame MP4 | completed; annotated MP4 reads back as 1280×720, 20 frames |
+| `dev-ref-truncated-01` | reference | half AVI | failed, exit 1; 5 frames processed, 5 failed lines "Decoder stopped after 5 of 10 reported frames" |
+| `dev-missing-01`, `dev-noflag-01`, `dev-flag-01` | — | — | refused before loading: missing input; official weights without `--reference-coco`; trained weights with it |
+
+Reusing an existing run ID was refused without touching the earlier run.
+
+**Review.** In `dev-ref-images-01/annotated/cabc30fc-fd79926f.jpg` the boxes sit on
+the cars and pedestrians, which shows the letterbox and the mapping back to
+original pixels are right. The reference model also boxes the ego car's hood and
+dashboard as "car 0.32", a real false detection. Box x-coordinates reach exactly
+1280, so clipping keeps boxes inside the half-open image. The 1-epoch smoke model
+still gives 275 low-score boxes on the gray image and drops zero-size boxes
+(25 in the edge run, 47 over the 20 video frames) as `invalid_boxes`, as expected for an almost untrained model.
+
+**Retrieval.** `artifacts/runs/dev-*` on the Linux desktop (not in Git).

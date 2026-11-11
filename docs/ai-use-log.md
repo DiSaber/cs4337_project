@@ -4,6 +4,19 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: D4 inference (T016–T017)
+
+- Task: Implement image, folder and video inference with the reference COCO mapping.
+- Assistance: Claude Code wrote `src/driving_detection/infer.py` and
+  `configs/evaluation/default.yaml`. It uses the pinned YOLOv5 letterbox, NMS and
+  box-scaling functions unchanged, and loads only project-trained or verified
+  official checkpoints. It installed the CUDA lock into the Linux desktop `.venv`.
+- Verification: Ran `infer` on CPU with the reference and `smoke-03` checkpoints on
+  BDD official-test images, a gray image (empty result), corrupt and unsupported
+  files, an MP4 and a truncated AVI, plus refusal cases. Reviewed an annotated image,
+  `predictions.jsonl` lines and `run.json` counts (details in
+  `results/experiments.md`). No accuracy is reported.
+
 ## 2026-11-11: Colab notebook for the baseline run (T015 setup)
 
 - Task: Give the T015 baseline training a notebook that can be uploaded and run in
