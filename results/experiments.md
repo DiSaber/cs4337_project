@@ -287,3 +287,38 @@ still gives 275 low-score boxes on the gray image and drops zero-size boxes
 (25 in the edge run, 47 over the 20 video frames) as `invalid_boxes`, as expected for an almost untrained model.
 
 **Retrieval.** `artifacts/runs/dev-*` on the Linux desktop (not in Git).
+
+## 2026-11-11: D5 evaluator and connected smoke pipeline (T020–T022)
+
+Status: **the pipeline connects end to end with the smoke checkpoint**. Smoke scores
+below show the evaluator runs; they are not findings and are never reported.
+
+**Runs** (Linux desktop CPU, AMD Ryzen 9 9950X, 16 torch threads, Python 3.13.5,
+torch 2.9.1+cu128 on CPU):
+
+- `smoke-images-01`: `infer` with `smoke-03` on the five BDD official-test images;
+  completed. With `dev-smoke-edge-01` (empty/invalid inputs) and
+  `dev-smoke-video-01` (MP4) from the D4 check, this covers images, video, invalid
+  inputs and empty results.
+- `smoke-val-01`: `evaluate --partition val` with `smoke-03` at size 640; completed
+  in about 1 minute. 1,000 of 1,000 images processed, 8 negatives, 295,515
+  predictions at the 0.001 floor, 4,485 zero-size boxes dropped. No undefined values.
+  TP + FN equals the label count overall (14,510) and for each class (car 10,607,
+  pedestrian 1,232, traffic light 2,671). The run predates the CPU-model field, so its
+  timing says only "CPU"; smoke makes no speed claim.
+- `dev-test-nosel-01`, `dev-test-sel-01`: `--partition test` without `--selection` is
+  refused by the argument parser; with one it is refused before any image is read.
+
+**Hand count** (overlays in `artifacts/runs/smoke-val-01/review/`, labels green,
+predictions at score 0.25 and above red). Counted by Claude Code from the overlays;
+a team member still needs to confirm them:
+
+| Sample | Labels | Predictions >= 0.25 | Hand count | Reported |
+| --- | --- | --- | --- | --- |
+| `b3039ada-2ef2a725` (no objects) | none | none | nothing | nothing |
+| `b2156f8e-72e1547c` | 3 traffic lights | none | FN 3 | FN 3 |
+| `b23c9e00-5506ddfb` (night) | 3 cars | car 0.62 on the van, car 0.41 on a tunnel mouth | TP 1, FP 1, FN 2 | TP 1, FP 1, FN 2 |
+| `b4a8e0fd-7ca55075` (duplicate) | 3 cars | car 0.68 and 0.55 on the same car (IoU 0.67 and 0.75), car 0.30 on nothing | TP 1, FP 2, FN 2 | TP 1, FP 2, FN 2 |
+
+In the duplicate case the higher-scored box takes the label even though the second
+box overlaps it more, as the score-first rule requires.

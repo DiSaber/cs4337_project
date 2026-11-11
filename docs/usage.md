@@ -215,6 +215,45 @@ and the run ends as `failed` with exit code 1. A video that stops decoding befor
 reported frame count gets one failed line per missing frame and also fails. The saved
 video is reopened to check its size and frame count.
 
+## Evaluation
+
+`evaluate` scores a trained checkpoint on a prepared partition with the same
+inference settings as `infer`:
+
+```bash
+python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/best.pt \
+  --profile data/prepared/bdd-subset-v2/profile.json --partition val \
+  --config configs/evaluation/default.yaml --run-id baseline-val-01 --device cuda:0
+```
+
+Before reading any image it checks that the manifest and COCO ground truth still
+match the profile hashes and list the same samples, and that the checkpoint has the
+three canonical classes. Each image's bytes must match its manifest hash. Any failed
+image stops the run before metrics, because metrics need the whole partition. The
+test partition is refused until the selection checks (T024) exist.
+
+`metrics.json` holds:
+
+- `map_50_95` and `map_50`: pycocotools bbox AP (IoU 0.50:0.05:0.95 or 0.50, 101
+  recall points, all box sizes, up to 100 boxes per image), overall and per class.
+  Negative images are included.
+- `precision_micro`, `recall_micro`, `tp`, `fp`, `fn`, overall and per class, at one
+  fixed operating point: the top 100 boxes per image with score at least 0.25,
+  greedily matched in score order to the unmatched same-class label with the highest
+  IoU of at least 0.5. A second box on an already-matched label is a false
+  detection. This is not COCO average recall.
+- `timing`: the first 100 samples in manifest order are decoded first, then 10
+  warm-up passes, then one timed pass (CUDA synchronized) over letterbox,
+  normalization, device transfer, forward pass, NMS and mapping boxes back. It
+  records the hardware, CPU threads, input size, batch 1, FP32, the sample-list hash,
+  elapsed seconds, ms per image and images per second. Decoding, drawing and writing
+  are not timed, so this is not full video-processing speed.
+- Undefined values are `null` with a reason, for example precision when no box
+  reaches the operating point.
+
+`predictions.jsonl` has one line per sample in the `infer` format, and `run.json` has
+the model, data and config identities and counts.
+
 ## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated

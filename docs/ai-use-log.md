@@ -4,6 +4,18 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: D5 evaluator and smoke pipeline (T020–T022)
+
+- Task: Validation evaluation (COCO AP, fixed-point precision/recall, timing) and
+  connecting data, training, inference and evaluation with the smoke checkpoint.
+- Assistance: Claude Code wrote `src/driving_detection/evaluate.py`, cached the
+  upstream imports in `infer.py` so timing does not re-read config files, ran the
+  smoke evaluation and drew review overlays.
+- Verification: `smoke-val-01` completed on all 1,000 val images; TP + FN matched
+  the label counts per class; four images (a negative, misses, a false detection and
+  a duplicate) were hand-counted from overlays and matched the matcher. Test-partition
+  refusals were run. A team member still needs to confirm the hand count.
+
 ## 2026-11-11: D4 inference (T016–T017)
 
 - Task: Implement image, folder and video inference with the reference COCO mapping.
