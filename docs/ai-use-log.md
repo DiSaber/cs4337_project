@@ -16,6 +16,16 @@ do not need to be included.
   overlays were inspected by eye. No test-partition data was read. Marc Benamou
   reviewed and accepted the D1–D5 evidence; the video demo is deferred to D9.
 
+## 2026-11-11: Presentation outline (T032 part)
+
+- Task: Draft the presentation structure from measured results.
+- Assistance: Claude Code wrote `docs/presentation/slides.md`: 11 slides covering the
+  four rubric questions, with sources for every number, example image paths and
+  suggested wording marked `SAMPLE:` for the students to rewrite.
+- Verification: Numbers were copied from `results/experiments.md` and
+  `results/comparison.md` (D6 numbers from the D6 branch); the YOLOv5 license was
+  checked against the pinned source. Slides, rehearsal and recording are not done.
+
 ## 2026-11-11: D3 baseline audit (T015)
 
 - Task: Check and record the completed `baseline-01` training run.
