@@ -4,6 +4,16 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Presentation outline (T032 part)
+
+- Task: Draft the presentation structure from measured results.
+- Assistance: Claude Code wrote `docs/presentation/slides.md`: 11 slides covering the
+  four rubric questions, with sources for every number, example image paths and
+  suggested wording marked `SAMPLE:` for the students to rewrite.
+- Verification: Numbers were copied from `results/experiments.md` and
+  `results/comparison.md` (D6 numbers from the D6 branch); the YOLOv5 license was
+  checked against the pinned source. Slides, rehearsal and recording are not done.
+
 ## 2026-11-11: Final held-out test (T027)
 
 - Task: Run the one selected test evaluation and record it.
@@ -12,6 +22,17 @@ do not need to be included.
 - Verification: The selection checks passed from a clean commit; all 1,000 test
   images were processed with no undefined values; numbers were copied from
   `metrics.json`. The test set was used once.
+
+## 2026-11-11: Course deliverables checklist (T028) and README refresh
+
+- Task: Track FR-001–036 status, roles, links, deadlines and submission evidence;
+  bring the README up to date with D1–D5.
+- Assistance: Claude Code drafted `docs/course-deliverables.md` from the
+  specification's requirements and recorded course sources, and rewrote the README
+  status and command overview.
+- Verification: Each FR status was checked against merged evidence (24 done, 3
+  partial, 9 pending, totalling 36). Names, roles, the report submitter and the
+  hosting question are left for the team; nothing was sent or uploaded.
 
 ## 2026-11-11: D6 selection checks, comparison and selection (T024–T026)
 
@@ -36,27 +57,6 @@ do not need to be included.
   metrics; the project AP agrees with upstream's training-time validation; failure
   overlays were inspected by eye. No test-partition data was read. Marc Benamou
   reviewed and accepted the D1–D5 evidence; the video demo is deferred to D9.
-
-## 2026-11-11: Presentation outline (T032 part)
-
-- Task: Draft the presentation structure from measured results.
-- Assistance: Claude Code wrote `docs/presentation/slides.md`: 11 slides covering the
-  four rubric questions, with sources for every number, example image paths and
-  suggested wording marked `SAMPLE:` for the students to rewrite.
-- Verification: Numbers were copied from `results/experiments.md` and
-  `results/comparison.md` (D6 numbers from the D6 branch); the YOLOv5 license was
-  checked against the pinned source. Slides, rehearsal and recording are not done.
-
-## 2026-11-11: Course deliverables checklist (T028) and README refresh
-
-- Task: Track FR-001–036 status, roles, links, deadlines and submission evidence;
-  bring the README up to date with D1–D5.
-- Assistance: Claude Code drafted `docs/course-deliverables.md` from the
-  specification's requirements and recorded course sources, and rewrote the README
-  status and command overview.
-- Verification: Each FR status was checked against merged evidence (24 done, 3
-  partial, 9 pending, totalling 36). Names, roles, the report submitter and the
-  hosting question are left for the team; nothing was sent or uploaded.
 
 ## 2026-11-11: D3 baseline audit (T015)
 

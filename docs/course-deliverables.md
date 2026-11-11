@@ -5,10 +5,9 @@ the evidence. "Done" means repository work with evidence; uploads, messages and
 access changes are student actions and stay pending until someone does them and
 records proof here. Last updated 2026-11-11.
 
-**Required requirements satisfied: 24 / 36.** This counts requirements, not effort or
-grading credit. FR-023 and FR-024 are satisfied on the D6 branch
-(`001-driving-object-detection-us6`), which is not merged yet. Optional FR-037–039
-are tracked separately and never count toward the total.
+**Required requirements satisfied: 25 / 36.** This counts requirements, not effort or
+grading credit. Optional FR-037–039 are tracked separately and never count toward
+the total.
 
 ## Team, roles and submitter
 
@@ -73,23 +72,23 @@ action not yet done).
 | 020 | Results tied to model, partition, config | D5 | done | `metrics.json` identities |
 | 021 | Speed claims with conditions | D5 | done | Timing block: CPU, 640, batch 1, stages, warm-up, 100 samples |
 | 022 | Success/failure examples and limits | D5 | done | `baseline-val-02/examples/`; limits in `docs/usage.md` |
-| 023 | One bounded candidate on validation | D6 | done (branch) | `results/comparison.md` |
-| 024 | Declared rule, selection frozen before test | D6 | done (branch) | `results/selected.yaml` (2026-11-11T22:06:12Z) |
-| 025 | Final held-out result preserved | D6 | pending | T027 waits for selection sign-off |
+| 023 | One bounded candidate on validation | D6 | done | `results/comparison.md` |
+| 024 | Declared rule, selection frozen before test | D6 | done | `results/selected.yaml` (2026-11-11T22:06:12Z) |
+| 025 | Final held-out result preserved | D6 | done | `final-01`: test AP50 0.526, AP50:95 0.236; `results/experiments.md` |
 | 026 | Three-page PDF with required sections | D7 | pending | Student-authored; `docs/report/` not started |
 | 027 | Names/roles on front page; citations; links | D7 | pending | Needs names/roles above |
 | 028 | Own-words report; AI-use log | D7 | partial | `docs/ai-use-log.md` kept per task; report prose pending |
-| 029 | Commented code and README instructions; >= 60% tracked honestly | D7 | partial | README and `docs/usage.md` current as of D6; final review is T030 |
+| 029 | Commented code and README instructions; >= 60% tracked honestly | D7 | partial | README and `docs/usage.md` current through D6; final review is T030 |
 | 030 | This checklist | D7 | done | This file |
 | 031 | One team member uploads the PDF on time | D7 | pending | Student action |
 | 032 | Hosting/account conflict resolved with instructor | D7 | pending | See above; student action |
-| 033 | 5–10 minute presentation recording | D8 | pending | Student action |
+| 033 | 5–10 minute presentation recording | D8 | pending | Outline in `docs/presentation/slides.md`; slides and recording are student work |
 | 034 | Readable slides, audible speech, rehearsal review | D8 | pending | Student action |
 | 035 | Slides in Canvas, Unlisted YouTube link, incognito test | D8 | pending | Student action |
 | 036 | Top 10 audience questions answered | D8 | pending | After peer feedback |
 
-Count: done 24 (001–014, 016–024, 030), partial 3 (015, 028, 029), pending 9 (025,
-026, 027, 031–036); 24 + 3 + 9 = 36.
+Count: done 25 (001–014, 016–025, 030), partial 3 (015, 028, 029), pending 8 (026,
+027, 031–036); 25 + 3 + 8 = 36.
 
 ## Optional (FR-037–039, D9)
 

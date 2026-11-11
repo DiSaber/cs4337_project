@@ -15,8 +15,8 @@ BDD100K and runs it on new images and prerecorded video. Implementation follows 
 | D3 baseline training (`baseline-01`, 20 epochs on a Colab T4) | Done |
 | D4 inference on images and video | Done; a real driving-video demo is deferred to the optional dashcam study |
 | D5 evaluation and accepted core | Done: validation AP50 0.521, AP50:95 0.239 |
-| D6 candidate comparison and final test | Comparison and frozen selection done; final test run pending |
-| D7 report and D8 presentation | Student work in progress; see the [course checklist](docs/course-deliverables.md) |
+| D6 candidate comparison and final test | Done: size 640 kept; held-out test AP50 0.526, AP50:95 0.236 |
+| D7 report and D8 presentation | Course checklist and [presentation outline](docs/presentation/slides.md) ready; report, slides and recording are student work (see the [course checklist](docs/course-deliverables.md)) |
 | D9 team dashcam study | Optional, not started |
 
 ## The six commands
