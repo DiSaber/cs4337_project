@@ -280,8 +280,12 @@ def sync(args, settings: dict) -> None:
             write_json(inventory_path, inventory)
 
 
-def load_reference_model(settings: dict, device: str):
-    """Load only the verified official checkpoint; keep upstream source unchanged."""
+def load_model(settings: dict, device: str, checkpoint: Path | None = None):
+    """Load the verified official checkpoint, or a checkpoint this project trained.
+
+    Upstream source stays unchanged. A trained checkpoint is trusted because the
+    project's own train command wrote it under artifacts/runs.
+    """
     import functools
     import torch
 
@@ -290,12 +294,12 @@ def load_reference_model(settings: dict, device: str):
     _verified("source", source_asset)
     _verified("weights", weight_asset)
     source = _local_output(source_asset["path"])
-    weights = _local_output(weight_asset["path"])
+    weights = _local_output(weight_asset["path"]) if checkpoint is None else checkpoint
     os.environ["YOLOv5_AUTOINSTALL"] = "false"
     os.environ["YOLOV5_CONFIG_DIR"] = str(_local_output("artifacts/yolo-config"))
     Path(os.environ["YOLOV5_CONFIG_DIR"]).mkdir(parents=True, exist_ok=True)
     # The pinned loader serializes a full nn.Module. Scope the legacy loading
-    # behavior to the verified official asset instead of changing torch globally.
+    # behavior to this one trusted checkpoint instead of changing torch globally.
     sys.path.insert(0, str(source))
     try:
         experimental = importlib.import_module("models.experimental")
@@ -357,7 +361,7 @@ def check(args, settings: dict) -> None:
         report["hardware"] = {"processor": platform.processor(), "torch_cuda": torch.version.cuda}
         if args.device == "cuda:0":
             report["hardware"]["gpu"] = torch.cuda.get_device_name(0)
-        model = load_reference_model(settings, args.device)
+        model = load_model(settings, args.device)
         names = model.names
         if len(names) != 80 or names[0] != "person" or names[2] != "car" or names[9] != "traffic light":
             raise ValueError("Official reference checkpoint has an unexpected class head.")

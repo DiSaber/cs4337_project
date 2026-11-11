@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 
 
 def workspace_path(value: str | Path) -> Path:
@@ -85,3 +86,13 @@ def resolve_device(requested: str | None, settings: dict) -> str:
         if not torch.cuda.is_available() or torch.cuda.device_count() < 1:
             raise ValueError("Requested device cuda:0 is unavailable. Check the GPU, driver and installed torch build.")
     return device
+
+
+def project_revision() -> dict:
+    """Record the project Git commit and whether tracked files had local changes."""
+    try:
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+        changes = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return {"commit": None, "reason": f"Git unavailable: {exc}"}
+    return {"commit": commit, "uncommitted_changes": bool(changes.strip())}

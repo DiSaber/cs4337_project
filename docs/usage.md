@@ -125,6 +125,50 @@ asks for a new `profile_id` and output folder. Recorded counts and review are in
 [experiments](../results/experiments.md). Known label noise: about 30 boxes come
 from zero-size source labels and become 1-pixel-wide slivers.
 
+## Training
+
+`train` runs the pinned YOLOv5 v7.0 `train.py` on the prepared train/val export.
+It needs the full runtime (torch); the data-only environment above cannot train.
+The smoke run checks that training works end to end; its accuracy is never reported:
+
+```bash
+python -m driving_detection train --profile data/prepared/bdd-subset-v2/profile.json \
+  --config configs/train/smoke.yaml --run-id smoke-01 --device cuda:0
+```
+
+The baseline uses `--config configs/train/baseline.yaml --run-id baseline-01`. Use
+`--device cpu` to run on CPU (slow). Before starting, it checks that the source and
+initial weights are verified, that the train/val manifests and `dataset.yaml` still
+match the profile hashes, and that no experiment tracker (wandb, ClearML, Comet) is
+installed. The test partition is never passed to training.
+
+Everything goes into `artifacts/runs/<run-id>/`:
+
+- `run.json`: status, label (smoke or baseline), project commit, source/weights/data
+  identities and hashes, the exact upstream command, effective batch (gradient
+  accumulation to a nominal batch of 64 and scaled weight decay), seeds,
+  nondeterminism notes, installed packages, hardware, budget use, chosen epoch and
+  checkpoint hashes.
+- `resolved-config.yaml`, `hyp.input.yaml` and upstream's own `opt.yaml`/`hyp.yaml`.
+- `train.log` (full console output) and `results.csv` (one row per epoch).
+- `weights/best.pt` (chosen checkpoint) and `weights/last.pt`.
+
+The chosen epoch is the one with the highest upstream validation fitness
+(0.1 × mAP@0.5 + 0.9 × mAP@0.5:0.95); ties keep the earliest epoch. After training,
+`best.pt` is loaded and must have exactly the classes car, pedestrian, traffic_light.
+A run that passes `budget_gpu_hours` is stopped and recorded as `interrupted`;
+retry with a new run ID (there is no resume). To change the batch size before the
+reported run (fallback 4, then 2), edit `batch` in the config; `run.json` records it.
+
+Load a trained checkpoint in Python with
+`driving_detection.assets.load_model(load_config(Path("configs/assets.yaml")), "cpu", Path("artifacts/runs/baseline-01/weights/best.pt"))`.
+
+Compatibility settings (upstream files stay unchanged): the training process gets
+`TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1` because pinned `train.py` loads full pickled
+models, and `--noplots` because pinned plotting needs a Pillow method removed in
+Pillow 10. Upstream also downloads `Arial.ttf` into `artifacts/yolo-config` the first
+time and writes `labels/*.cache` files beside the prepared YOLO labels.
+
 ## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated
@@ -146,9 +190,9 @@ python -m driving_detection evaluate --help
 
 On Linux, activate with `source .venv/bin/activate`. The build backend may need
 to be installed by pip. Help needs no torch, CUDA, PyYAML, weights or dataset.
-Asset sync, readiness check and data preparation are implemented. Train/infer/
-evaluate still report an unimplemented-handler error and exit 1 without reading
-configs or creating run outputs. Invalid/missing arguments exit 2. The package-only install
+Asset sync, readiness check, data preparation and training are implemented.
+Infer/evaluate still report an unimplemented-handler error and exit 1 without
+reading configs or creating run outputs. Invalid/missing arguments exit 2. The package-only install
 above is enough for help, but model readiness requires the full runtime setup.
 
 ## Shared behavior for component implementation
@@ -170,7 +214,8 @@ For implemented handlers, the CLI saves effective device/config settings to
 their domain-specific settings/evidence and resave resolved settings if they add
 defaults or overrides. The CLI starts the record with `status=started` and writes
 `completed`, `failed` or `interrupted` on exit, preserving handler-added fields.
-Failures include a reason and exit nonzero; Ctrl+C exits 130.
+Failures include a reason and exit nonzero; Ctrl+C exits 130. A handler that
+stops at its time budget raises `TimeoutError`, recorded as `interrupted` (exit 1).
 
 Large inputs belong in ignored `data/` and `external/`; generated outputs belong
 in ignored `artifacts/`. If the checkout sits inside a Syncthing (or similar) synced

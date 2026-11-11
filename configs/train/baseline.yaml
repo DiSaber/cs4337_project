@@ -1,5 +1,6 @@
 # Declared GPU baseline (contracts/pipeline.md "Training and inference").
 # Values are passed to pinned YOLOv5 v7.0 train.py; the run saves this file resolved.
+label: baseline         # reportable experiment
 device: cuda:0
 weights: external/weights/yolov5s.pt   # official COCO-pretrained initial weights
 imgsz: 640
@@ -11,7 +12,7 @@ seed: 4337
 budget_gpu_hours: 8      # includes per-epoch validation; exceeding it = interrupted run
 optimizer: SGD
 noautoanchor: true
-# Upstream EarlyStopping treats 0 as "never stop", so all 20 epochs run.
+# Upstream EarlyStopping treats 0 as "never stop", so every planned epoch runs.
 patience: 0
 # Checkpoint choice is upstream validation fitness 0.1*AP50 + 0.9*AP50:95.
 # train.py keeps best only when fitness is strictly higher, so ties keep the earliest epoch.

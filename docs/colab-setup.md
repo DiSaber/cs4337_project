@@ -113,3 +113,64 @@ files.download(bundle)
 Return the bundle and reviewer notes. Preserve large data/weights outside ephemeral
 runtime storage if needed, following dataset/model terms. Keep credentials and
 large artifacts out of Git. New data preparation and training remain later phases.
+
+## D3 smoke training on Colab (T014)
+
+Status: **not run yet**. These steps prepare the data in Colab and run the one-epoch
+smoke training. Select a GPU runtime and clone the branch that contains the train
+command (`001-driving-object-detection-us3` until it is merged), using the clone
+cell above with that branch name. The CUDA lock is for Python 3.13; if Colab now
+has another version, stop and record it instead of forcing the lock.
+
+```bash
+%%bash
+set -euo pipefail
+cd /content/cs4337_project
+python --version
+python -m venv --without-pip .venv-colab
+python -m pip --python .venv-colab/bin/python install -r requirements/cuda-lock.txt
+python -m pip --python .venv-colab/bin/python install --no-deps -e .
+# Downloads about 5.9 GB (images 5.67 GB, labels 0.19 GB) from the BDD author mirror, then verifies and extracts it.
+.venv-colab/bin/python -m driving_detection assets sync --config configs/assets.yaml
+.venv-colab/bin/python -m driving_detection check --config configs/assets.yaml --device cuda:0
+.venv-colab/bin/python -m driving_detection data prepare --config configs/data/bdd-subset.yaml
+```
+
+Preparation must reproduce the frozen Linux-desktop profile exactly. Compare these
+`exports` entries in `data/prepared/bdd-subset-v2/profile.json` before training:
+
+| Export | SHA-256 from the D2 run |
+| --- | --- |
+| `manifest.train.jsonl` | `0f3b35bfc1ded48c55ebf4d6b30cb8e55089f4e51461fd9865d36e2ca2a15251` |
+| `manifest.val.jsonl` | `73d93c05c045119cf276fd7f131fbd3181503bbb4103e335119a26cc72f495e0` |
+| `manifest.test.jsonl` | `42286df26bc61943244c51aa51e5702a65dec4e8a7a3d2611a08abe14d6a76fb` |
+| `yolo/dataset.yaml` | `fd880cae4bd4604e5c458d0c9c7c8e7ebb9230251e9b2ae6917c0a6b4f4e4b8d` |
+
+If any differ, stop: the data is not the frozen profile. Then run the smoke training:
+
+```bash
+%%bash
+set -euo pipefail
+cd /content/cs4337_project
+.venv-colab/bin/python -m driving_detection train \
+  --profile data/prepared/bdd-subset-v2/profile.json \
+  --config configs/train/smoke.yaml --run-id smoke-01 --device cuda:0
+```
+
+Expected: exit 0, `status: completed` and `label: smoke` in
+`artifacts/runs/smoke-01/run.json`, one row in `results.csv`, and a `head` entry
+with the three canonical class names. Download the run before the runtime expires
+(about 30 MB with both checkpoints):
+
+```python
+import shutil
+from google.colab import files
+
+bundle = shutil.make_archive('/content/smoke-01', 'zip',
+                             root_dir='/content/cs4337_project/artifacts/runs',
+                             base_dir='smoke-01')
+files.download(bundle)
+```
+
+If training fails, keep the run directory (its `run.json` and `train.log` show the
+reason) and return it as well; a retry needs a new run ID such as `smoke-02`.

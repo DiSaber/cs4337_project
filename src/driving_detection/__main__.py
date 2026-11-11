@@ -123,6 +123,9 @@ def main(argv: list[str] | None = None) -> int:
         status, reason = "completed", None
     except KeyboardInterrupt:
         status, reason, exit_code = "interrupted", "Interrupted by user.", 130
+    except TimeoutError as exc:
+        # A run stopped at its time budget is interrupted, not completed or failed.
+        status, reason, exit_code = "interrupted", str(exc), 1
     except Exception as exc:
         status, reason, exit_code = "failed", f"{type(exc).__name__}: {exc}", 1
 
