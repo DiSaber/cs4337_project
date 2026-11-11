@@ -265,7 +265,7 @@ mAP@0.5:0.95 rose from 0.088 after epoch 0 to 0.237–0.240 over epochs 12–19,
 model had mostly stopped improving. These are upstream training-time numbers; the
 project evaluator result is T023.
 
-**Audit** (Claude Code; a teammate still needs to go through the FR-012 fields):
+**Audit** (checked by Claude Code; Marc Benamou reviewed and accepted it on 2026-11-11):
 - `run.json` has label `baseline`, `reportable_accuracy: true`, status, times,
   command, source tree hash `7bbe4263…`, initial weights `8b3b748c…`, profile and
   train/val manifest hashes (train `0f3b35bf…`, val `73d93c05…`), the exact upstream
