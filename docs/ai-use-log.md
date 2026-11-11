@@ -16,6 +16,17 @@ do not need to be included.
   overlays were inspected by eye. No test-partition data was read. Marc Benamou
   reviewed and accepted the D1–D5 evidence; the video demo is deferred to D9.
 
+## 2026-11-11: Course deliverables checklist (T028) and README refresh
+
+- Task: Track FR-001–036 status, roles, links, deadlines and submission evidence;
+  bring the README up to date with D1–D5.
+- Assistance: Claude Code drafted `docs/course-deliverables.md` from the
+  specification's requirements and recorded course sources, and rewrote the README
+  status and command overview.
+- Verification: Each FR status was checked against merged evidence (24 done, 3
+  partial, 9 pending, totalling 36). Names, roles, the report submitter and the
+  hosting question are left for the team; nothing was sent or uploaded.
+
 ## 2026-11-11: D3 baseline audit (T015)
 
 - Task: Check and record the completed `baseline-01` training run.
