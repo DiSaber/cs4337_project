@@ -4,6 +4,18 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Colab notebook for the baseline run (T015 setup)
+
+- Task: Give the T015 baseline training a notebook that can be uploaded and run in
+  the browser.
+- Assistance: Claude Code wrote `notebooks/t015_baseline_colab.ipynb` from the
+  T015 steps in `docs/colab-setup.md`: clone, Drive mount, install/sync/prepare, a
+  hash check against the D2 profile that stops on a mismatch, a 10-minute run-folder
+  copy to Drive, training, and a final copy and check.
+- Verification: The notebook parses as valid JSON, and the `run.json` fields it
+  prints (`status`, `label`, `head`) match `train.py`. Marc Benamou started it in
+  Colab on 2026-11-11; the training result is not yet known.
+
 ## 2026-11-11: Windows CPU lock gets tensorboard
 
 - Task: Bring the Windows CPU lock in line with the tensorboard dependency added for

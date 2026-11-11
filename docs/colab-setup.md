@@ -181,6 +181,9 @@ reason) and return it as well; a retry needs a new run ID such as `smoke-05`. ID
 Status: **not yet run**. One attempt on 2026-11-11 lost its session during asset sync
 (see [experiments](../results/experiments.md)); `baseline-01` is unused.
 
+The ready-made notebook [`notebooks/t015_baseline_colab.ipynb`](../notebooks/t015_baseline_colab.ipynb)
+contains the steps below as cells (upload it with File > Upload notebook).
+
 Run this from a Colab notebook in the browser, not the Colab CLI: the CLI could not
 mount Drive (it needs the browser consent prompt). Free Colab can end a session
 without warning, so the run folder is copied to Drive while training runs. Only the
