@@ -160,6 +160,14 @@ A run that passes `budget_gpu_hours` is stopped and recorded as `interrupted`;
 retry with a new run ID (there is no resume). To change the batch size before the
 reported run (fallback 4, then 2), edit `batch` in the config; `run.json` records it.
 
+The reported baseline is `baseline-01` (completed 2026-11-11 on a Colab T4, 0.82 h;
+chosen epoch 16; `best.pt` SHA-256 `8a1f80c8…`). Its run folder (about 35 MB) is on
+the Linux desktop in `artifacts/runs/baseline-01/` and in the team Google Drive at
+`MyDrive/cs4337/runs/baseline-01/`. Copy it to `artifacts/runs/baseline-01/` on
+another machine. To repeat it, run `notebooks/t015_baseline_colab.ipynb` with a new
+`RUN_ID`, or the baseline command above with a new `--run-id` on a CUDA machine;
+expect small differences between repeats (see nondeterminism in `run.json`).
+
 Load a trained checkpoint in Python with
 `driving_detection.assets.load_model(load_config(Path("configs/assets.yaml")), "cpu", Path("artifacts/runs/baseline-01/weights/best.pt"))`.
 

@@ -4,6 +4,15 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: D3 baseline audit (T015)
+
+- Task: Check and record the completed `baseline-01` training run.
+- Assistance: Claude Code checked checkpoint hashes, loaded `best.pt`, recomputed the
+  chosen epoch from `results.csv`, compared the resolved config, scanned the log and
+  wrote the experiment record and retrieval notes.
+- Verification: All checks above passed (details in `results/experiments.md`). The
+  teammate audit of the FR-012 fields is still to be done.
+
 ## 2026-11-11: Colab notebook for the baseline run (T015 setup)
 
 - Task: Give the T015 baseline training a notebook that can be uploaded and run in
