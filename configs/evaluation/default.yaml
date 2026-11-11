@@ -1,0 +1,8 @@
+# Inference and evaluation settings (contracts/pipeline.md). Size 640 is the baseline.
+device: cpu
+imgsz: 640
+precision: fp32
+nms_iou: 0.6
+score_floor: 0.001 # Low floor keeps predictions for AP; drawing uses display_threshold.
+max_detections: 300
+display_threshold: 0.25

@@ -179,6 +179,50 @@ it; and `--noplots` is passed because pinned plotting needs a Pillow method remo
 in Pillow 10. Upstream also downloads `Arial.ttf` into `artifacts/yolo-config` the first
 time and writes `labels/*.cache` files beside the prepared YOLO labels.
 
+## Inference
+
+`infer` runs a checkpoint on one image, a folder of images or a prerecorded video
+(`.mp4`, `.avi`, `.mov`, `.mkv`, `.m4v`). Settings come from
+`configs/evaluation/default.yaml`: size 640, FP32, class-aware NMS at IoU 0.6, a score
+floor of 0.001, at most 300 boxes per image, and a display threshold of 0.25.
+
+```bash
+python -m driving_detection infer --model artifacts/runs/baseline-01/weights/best.pt \
+  --input data/new-scenes/images --config configs/evaluation/default.yaml --run-id baseline-images-01
+python -m driving_detection infer --model external/weights/yolov5s.pt --reference-coco \
+  --input data/new-scenes/demo.mp4 --config configs/evaluation/default.yaml --run-id reference-video-01
+```
+
+Only two kinds of checkpoint are loaded, because a checkpoint is a pickle that can
+run code: one this project trained under `artifacts/runs/`, which must have exactly
+the classes car, pedestrian and traffic_light, and the verified official COCO
+checkpoint with `--reference-coco`. The reference head maps COCO car, person and
+traffic light to our three classes and drops every other class. A box whose best
+COCO class is something else, such as truck, is dropped too. Reference and smoke
+results are development aids, never reported results; `run.json` marks a model
+`reportable` only when its training `run.json` has the label `baseline`.
+
+Each image is letterboxed to a gray-padded 640 × 640 square with its aspect ratio
+kept, run in FP32, and its boxes are mapped back to original pixels and clipped to
+the image. Boxes with zero width or height after clipping are dropped and counted as
+`invalid_boxes`. The run writes into `artifacts/runs/<run-id>/`:
+
+- `predictions.jsonl`: one line per image or video frame, in name or frame order,
+  with `status`. A completed line has the size and every box at or above the 0.001
+  floor (highest score first); an image with no boxes is a valid empty result
+  (`"predictions": []`). A failed line has a `reason` instead.
+- `annotated/` (images) or `annotated.mp4` (video, mp4v codec): boxes with score at or
+  above 0.25, blue car, red pedestrian, yellow traffic light.
+- `run.json`: model path/hash/head/training-run label, input path (and video hash,
+  frame rate, size, reported and decoded frames), environment and counts (expected,
+  processed, failed, empty, invalid boxes).
+
+In a folder, every visible file is an expected input. A file that is not an image,
+or that cannot be decoded, gets a failed line; the other files are still processed,
+and the run ends as `failed` with exit code 1. A video that stops decoding before its
+reported frame count gets one failed line per missing frame and also fails. The saved
+video is reopened to check its size and frame count.
+
 ## CLI help and package-only setup
 
 Use Python 3.10–3.14. To install only the current CLI skeleton in an isolated
