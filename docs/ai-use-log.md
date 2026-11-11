@@ -4,6 +4,16 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Windows CPU lock gets tensorboard
+
+- Task: Bring the Windows CPU lock in line with the tensorboard dependency added for
+  the Colab smoke run.
+- Assistance: Claude Code installed `tensorboard>=2.4.1,<3` into the local `.venv`
+  and added the 7 resolved wheels and hashes to `requirements/cpu-lock.txt` and
+  `cpu-wheels.json`.
+- Verification: Same versions as the CUDA lock; a hash-checked dry-run install of the
+  lock and `pip check` passed on Windows/CPython 3.14.7.
+
 ## 2026-11-11: D3 smoke training on Colab (T014)
 
 - Task: Run the T014 smoke training on a Colab GPU.

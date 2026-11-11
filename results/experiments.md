@@ -10,7 +10,7 @@ No training, predictions, accuracy measurements or speed benchmarks were run.
 | Platform | Windows amd64; CPython 3.14.7, Anaconda-provided interpreter |
 | Installation | New isolated `.venv`, without system site packages; global pip 26.1.2 populated it |
 | Main libraries | torch 2.15.0+cpu, torchvision 0.29.2+cpu, NumPy 2.5.4, Pillow 12.3.0, OpenCV 4.14.0.94, PyYAML 6.0.3, pycocotools 2.0.11 |
-| Complete dependency record | 57 external distributions in `requirements/cpu-lock.txt`; exact wheel origins/SHA-256 in `requirements/cpu-wheels.json` |
+| Complete dependency record | 64 external distributions in `requirements/cpu-lock.txt` (57 at setup, plus tensorboard's 7 added 2026-11-11); exact wheel origins/SHA-256 in `requirements/cpu-wheels.json` |
 | Source | Official YOLOv5 archive at commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; 144 extracted files, upstream files unchanged |
 | Source archive SHA-256 | `5aac5c8c40f89831fee611621b5ef3dbd7a7633278713b4dd0d059e1a631c7b0` (measured official download) |
 | Checkpoint SHA-256 | `8b3b748c1e592ddd8868022e8732fde20025197328490623cc16c6f24d0782ee` (measured official v7.0 download) |
@@ -232,9 +232,18 @@ profile reproduces on a second machine.
 - The log holds 2,503 harmless `FutureWarning`s about deprecated `torch.cuda.amp`
   calls in upstream.
 
-**Not done.** The Windows CPU lock still lacks tensorboard and needs the same addition
-on that machine. Colab storage was released when the session stopped, so the
+**CPU lock.** tensorboard and its 6 dependencies (same versions as the CUDA lock)
+were added to `requirements/cpu-lock.txt` and `cpu-wheels.json` on the Windows
+machine on 2026-11-11; a hash-checked dry-run install of the lock and `pip check`
+passed. Training was not run on CPU. Colab storage was released when the session stopped, so the
 baseline (T015) must sync and prepare again (about 15 min).
+
+**Lost baseline setup attempt (2026-11-11).** A T4 session started from the Windows
+machine with the Colab CLI (officially Linux/macOS only) installed the CUDA lock
+(`pip check` passed) and verified source, weights and images. About 20 minutes in,
+while labels were downloading, the session disappeared from the server; the cause is
+unknown. Preparation and training never started, so no run directory exists and
+`baseline-01` is still unused.
 
 **Retrieval.** `artifacts/runs/smoke-0{1,2,3}/` on the Linux desktop (not in Git;
 about 30 MB). Repeat with the Colab steps in [colab-setup](../docs/colab-setup.md).
