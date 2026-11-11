@@ -2,29 +2,59 @@
 
 ## Dataset
 
-Use BDD100K **100K keyframes** with **Detection 2020** labels. The
-[official download documentation](https://github.com/bdd100k/bdd100k/blob/master/doc/source/download.rst)
-identifies the image archive and revised labels, expected directory layouts and
-publisher MD5s. `configs/assets.yaml` records those MD5s. Legacy 2018 labels and
-10K segmentation images are different inputs and are not substitutes.
+Use the BDD100K **100K keyframes** with the original **2018 per-image labels**
+(`bdd100k_labels.zip`, files `100k/<split>/<video name>.json`). The plan first
+chose the revised Detection 2020 labels, but they can no longer be downloaded
+(checked 2026-11-10):
 
-The image archive's published MD5 is `5a0359c86a0b8713adab1eee9a3041cb`;
-Detection 2020's is `b86a3e1b7edbcad421b7dad2b3987c94`. These are publisher
-release checks, not SHA-256 signatures. Setup also records observed SHA-256.
+- The documented host `dl.cv.ethz.ch` returns NXDOMAIN from public DNS, and
+  `bdd-data.berkeley.edu` is unreachable. Other users report the same outage in
+  [BDD100K issue #356](https://github.com/bdd100k/bdd100k/issues/356) and
+  [#369](https://github.com/bdd100k/bdd100k/issues/369).
+- The Internet Archive holds no copy of `bdd100k_det_20_labels_trainval.zip`.
+  No Hugging Face repository with "bdd" in its name has a `det_20` file.
+- The author mirror's `bdd100k_det_20_labels.zip` (231,196,019 bytes, MD5
+  `e72531b982bbb42efbaaf93223527284`) does not match the published Detection 2020
+  MD5 `b86a3e1b7edbcad421b7dad2b3987c94`. It contains about 2,000 JPEG frames and
+  no label JSON, so it was rejected.
 
-Obtain authorized `bdd100k_images_100k.zip` and `bdd100k_det_20_labels.zip` from
-the official dataset access/download route linked in that documentation. Review
-the [dataset terms](https://github.com/bdd100k/bdd100k/blob/master/doc/source/license.rst)
+Research allowed a separately identified legacy-label profile before the
+manifests were frozen. `bdd-subset-v2` records its label release
+(`BDD100K-2018-labels-per-image`) in `profile.json`. The 2018 labels cover the same
+100K keyframes and use the categories `car`, `person` and `traffic light`. The 2020
+quality-check corrections are absent, and there are no ignored-region categories,
+so no image is excluded for that reason. `rider` stays a separate non-target class.
+
+Both archives come from the dataset lead author's mirror,
+`http://dl.yf.io/bdd100k/`. It serves plain HTTP only because its HTTPS
+certificate has expired. Integrity therefore rests on the pinned hashes:
+
+| Archive | Publisher MD5 | Measured SHA-256 |
+| --- | --- | --- |
+| `bdd100k_images_100k.zip` (5,669,071,832 bytes) | `5a0359c86a0b8713adab1eee9a3041cb` (mirror does not match) | `afd149eadb49657ef5ad7bb6e9d77cc8b7927a576ee2b475b720028274e02784` |
+| `bdd100k_labels.zip` (189,638,612 bytes) | none published | `7f1f9043c70a6ff0788a323cfb914aeced109a37b7150740d670a347c881394a` |
+
+The mirror's image archive has the published size, but its MD5 is
+`c7a1d4db9af5a4691d5f6fee2a62e132`, not the published value (checked 2026-11-10).
+It is not a transfer error: the download was resumed once, and a fresh download of
+the first 1,534,742,528 bytes matched the local file exactly. All 100,000 JPEG
+members pass their zip CRC checks and the train/val/test folders are present, but
+they sit at `100k/<split>/` without the official `bdd100k/images/` prefix. So
+the mirror archive is byte-different from the one the MD5 was published for (for
+example, repacked), and we cannot prove its images are identical to the official
+release. The config therefore pins only our measured SHA-256. `data prepare`
+also decodes every selected image.
+
+The published image MD5 comes from the [official download documentation](https://github.com/bdd100k/bdd100k/blob/master/doc/source/download.rst).
+An [archived 2022 copy of the download page](https://web.archive.org/web/2022/https://doc.bdd100k.com/download.html)
+lists no checksum for the per-image label archive, so its SHA-256 is the
+project's own measured identity, not a publisher signature. `assets sync`
+downloads both archives automatically and checks them against these values.
+
+Review the [dataset terms](https://github.com/bdd100k/bdd100k/blob/master/doc/source/license.rst)
 before obtaining or redistributing data. The code repository's BSD license is
-separate from the data/label terms. Any account, terms acceptance or unavailable
-download access must be handled manually. Supply local archives using the CLI
-flags in [usage](usage.md); no credentials or signed URLs belong in Git.
-
-The documented public directory could not be fetched by the research browser
-(HTTP 502). No dataset archive was acquired in this implementation session.
-Dataset URLs are therefore unset in the config; local-archive ingestion is
-automated and checksum-checked. A public HTTPS URL can be configured when its
-official identity and availability are verified. Raw videos are not needed.
+separate from the data/label terms. Downloading means agreeing to the BDD100K
+license. No account or credentials are needed for the mirror. Raw videos are not needed.
 
 ## Detector
 

@@ -31,29 +31,43 @@ recorded in `requirements/cuda-lock.txt` and `cuda-wheels.json`.
 
 ## External assets
 
-Review [sources, licensing and access prerequisites](references.md). Model sync
-downloads only the pinned official source archive and checkpoint. To acquire all
-required inputs, supply authorized BDD100K image and Detection 2020 archives:
+Review [sources, licensing and access prerequisites](references.md). Full sync
+downloads the pinned YOLO source and checkpoint, plus the BDD100K 100K image
+archive (5.7 GB) and the 2018 per-image label archive (190 MB) from the dataset
+author's mirror. Allow about 12 GB of free disk for the archives and extracted files.
 
 ```powershell
-.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_det_20_labels.zip"
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml
 ```
 
-The dataset's public download route is not verified available, so its config URLs
-are unset. Running full sync without local archives gives an actionable access
-error. A verified public HTTPS URL can be configured; embedded credentials/signed
-query URLs are rejected. Model SHA-256 pins are measured official-download
-identities; dataset MD5s come from the publisher. Supplied local archives must
-match their declared checksums and expected members.
+If you already have the same archives, import them instead of downloading:
+
+```powershell
+.venv/Scripts/python.exe -m driving_detection assets sync --config configs/assets.yaml --images-archive "C:/Datasets/bdd100k_images_100k.zip" --labels-archive "C:/Datasets/bdd100k_labels.zip"
+```
+
+The BDD mirror serves plain HTTP because its HTTPS certificate has expired.
+Sync accepts an HTTP URL only when a SHA-256 is pinned for it, and checks the
+publisher MD5 too where one exists. Embedded credentials and signed query URLs
+are rejected. Model SHA-256 pins are measured official-download identities.
+Supplied local archives must match the same checksums and expected members.
+Detection 2020 labels are no longer downloadable; [references](references.md)
+explains the switch to the 2018 labels.
 
 Outputs are `external/yolov5-v7.0`, `external/weights/yolov5s.pt`,
-`data/raw/images/bdd100k/images/100k/`, and
-`data/raw/labels/bdd100k/labels/det_20/`. `artifacts/assets.json` stores asset
+`data/raw/images/100k/`, and `data/raw/labels/100k/`.
+`artifacts/assets.json` stores asset
 identities/readiness; `artifacts/asset-receipts/` stores verified receipts.
 Sync stages assets before promotion and refuses existing unverified/changed
-destinations. Repeated sync hashes extracted contents, so checking large data
-still reads the files but does not download duplicates. Python bytecode caches
-are excluded from extracted-content identity.
+destinations. The first extraction is fully verified: the archive SHA-256 and a
+SHA-256 of every extracted file (`tree_sha256` in the receipt). Reuse (repeated
+`assets sync`, `check`, `data prepare`) only checks the expected members, file
+count and total bytes against the receipt, so it is fast but would not catch an
+edit that keeps a file's size. To fully re-verify, move the asset and its receipt
+aside and sync again from the cached archive. Receipts written before this size
+check existed still get the full per-file hash on reuse. Single-file assets
+(weights) are always fully hashed. Python bytecode caches are excluded from
+extracted-content identity.
 
 Download caches live under `external/downloads/`. An interrupted `.part` is
 unverified; retry restarts its download rather than resuming. A corrupt completed
@@ -69,6 +83,47 @@ Runtime adapters allow the pinned checkpoint loader to use explicit
 `weights_only=False` only for verified official weights and restore Pillow's
 removed font sizing method. Upstream source is unchanged; later training still
 needs its own integration verification.
+
+## Data preparation
+
+`data prepare` builds the frozen three-class subset `bdd-subset-v2` from the
+synced BDD assets. It needs only PyYAML and Pillow; no torch or GPU. On Linux
+with Python 3.13, a data-only environment can use the matching hash-pinned
+entries from the Linux lock (this is how D2 was prepared):
+
+```bash
+python3 -m venv .venv
+grep -E '^(pyyaml|pillow) ' requirements/cuda-lock.txt > /tmp/data-req.txt
+.venv/bin/python -m pip install --require-hashes -r /tmp/data-req.txt
+.venv/bin/python -m pip install --no-deps -e .
+.venv/bin/python -m driving_detection assets sync --config configs/assets.yaml
+.venv/bin/python -m driving_detection data prepare --config configs/data/bdd-subset.yaml
+```
+
+On Windows use `.venv/Scripts/python.exe` with the full CPU setup above.
+Preparation reads all 80,000 official train/val labels and image headers, takes
+about 25 s on the Linux desktop, and writes `data/prepared/bdd-subset-v2/`:
+`profile.json` (settings, asset identities, rules, counts, integrity results and
+export hashes), `manifest.{train,val,test}.jsonl`, `quarantine.jsonl` (every
+rejected image with its reason), `coco.val.json`/`coco.test.json` (category IDs
+1–3) and `yolo/` (train/val images as hard links, labels and `dataset.yaml`).
+The held-out test partition never reaches the YOLO export.
+
+What it checks: image/label pairing, known categories, box conversion
+(inclusive source pixels → half-open boxes clipped to the image), duplicate image
+content, exact requested counts, all three classes in every partition, and zero
+sequence or content overlap. Any failure stops before output is written.
+
+Sequences: a BDD name is `<session>-<clip>`. The session prefix is the sequence
+ID, and only one image per session is selected, so related clips never cross
+partitions. Sessions found in both official splits are quarantined. The test
+partition is a project holdout from official val, not the official BDD test set.
+
+Running it again with the same inputs prints "Reusing identical frozen profile"
+and changes nothing. If the config or assets change, it refuses to overwrite and
+asks for a new `profile_id` and output folder. Recorded counts and review are in
+[experiments](../results/experiments.md). Known label noise: about 30 boxes come
+from zero-size source labels and become 1-pixel-wide slivers.
 
 ## CLI help and package-only setup
 
@@ -91,9 +146,9 @@ python -m driving_detection evaluate --help
 
 On Linux, activate with `source .venv/bin/activate`. The build backend may need
 to be installed by pip. Help needs no torch, CUDA, PyYAML, weights or dataset.
-Asset sync and readiness check are implemented. Data/train/infer/evaluate still
-report an unimplemented-handler error and exit 1 without reading configs or
-creating run outputs. Invalid/missing arguments exit 2. The package-only install
+Asset sync, readiness check and data preparation are implemented. Train/infer/
+evaluate still report an unimplemented-handler error and exit 1 without reading
+configs or creating run outputs. Invalid/missing arguments exit 2. The package-only install
 above is enough for help, but model readiness requires the full runtime setup.
 
 ## Shared behavior for component implementation
@@ -118,7 +173,10 @@ defaults or overrides. The CLI starts the record with `status=started` and write
 Failures include a reason and exit nonzero; Ctrl+C exits 130.
 
 Large inputs belong in ignored `data/` and `external/`; generated outputs belong
-in ignored `artifacts/`. Keep secrets out of configs and command arguments, which
+in ignored `artifacts/`. If the checkout sits inside a Syncthing (or similar) synced
+folder, exclude these folders from syncing before downloading anything; Git ignore
+rules do not affect sync tools. Archives (`*.zip`, `*.tar*`, `*.7z`) and video
+(`*.mp4`, `*.avi`, `*.mov`, `*.mkv`) are Git-ignored anywhere in the tree. Keep secrets out of configs and command arguments, which
 may be preserved in run records. Track small configs and results/retrieval notes.
 
 The [future quickstart](../specs/001-driving-object-detection/quickstart.md)

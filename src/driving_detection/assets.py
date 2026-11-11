@@ -51,8 +51,11 @@ def _definition(settings: dict, name: str) -> dict:
             raise ValueError(f"Invalid {key} checksum for {name}.")
     if asset.get("url"):
         url = urlsplit(asset["url"])
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
-            raise ValueError("Use public HTTPS URLs without credentials or signed query strings.")
+        # Plain HTTP is accepted only with a pinned SHA-256: the hash, not the
+        # transport, proves the bytes. BDD's author-hosted mirror has no valid HTTPS.
+        secure = url.scheme == "https" or (url.scheme == "http" and asset.get("sha256"))
+        if not secure or not url.hostname or url.username or url.password or url.query or url.fragment:
+            raise ValueError("Use public HTTPS URLs (or HTTP with a pinned sha256) without credentials or signed query strings.")
     if not isinstance(asset.get("expected"), list):
         raise ValueError(f"Asset {name} needs expected members.")
     return asset
@@ -126,20 +129,33 @@ def _expected(path: Path, asset: dict) -> None:
             raise ValueError(f"Missing/empty expected member: {member}")
 
 
-def _tree(path: Path) -> tuple[str, int]:
-    """Content inventory for extracted files; caches never enter asset identity."""
-    digest = hashlib.sha256()
-    count = 0
+def _files(path: Path) -> list[Path]:
+    """Extracted files in native sorted order; caches never enter asset identity."""
+    files = []
     for entry in sorted(path.rglob("*")):
         if entry.is_symlink():
             raise ValueError("Asset directory contains a symbolic link.")
         if "__pycache__" in entry.parts or entry.suffix == ".pyc":
             continue
         if entry.is_file():
-            name = entry.relative_to(path).as_posix()
-            digest.update(name.encode("utf-8") + b"\0" + bytes.fromhex(sha256_file(entry)))
-            count += 1
-    return digest.hexdigest(), count
+            files.append(entry)
+    return files
+
+
+def _tree(path: Path) -> tuple[str, int]:
+    """Full content identity: every file's name and SHA-256."""
+    digest = hashlib.sha256()
+    files = _files(path)
+    for entry in files:
+        name = entry.relative_to(path).as_posix()
+        digest.update(name.encode("utf-8") + b"\0" + bytes.fromhex(sha256_file(entry)))
+    return digest.hexdigest(), len(files)
+
+
+def _size(path: Path) -> tuple[int, int]:
+    """Cheap reuse check: file count and total bytes, without reading contents."""
+    files = _files(path)
+    return len(files), sum(entry.stat().st_size for entry in files)
 
 
 def _receipt_path(name: str) -> Path:
@@ -159,8 +175,14 @@ def _verified(name: str, asset: dict) -> dict:
             raise ValueError(f"{name} content changed; preserve it and recover the original asset.")
     else:
         _expected(path, asset)
-        tree_hash, count = _tree(path)
-        if tree_hash != receipt["tree_sha256"] or count != receipt["file_count"]:
+        if "total_bytes" in receipt:
+            # Contents were fully hashed once at extraction (tree_sha256). Reuse
+            # checks count and size only, so a same-size edit is not detected.
+            unchanged = _size(path) == (receipt["file_count"], receipt["total_bytes"])
+        else:
+            # Receipts written before the size check existed get the full check.
+            unchanged = _tree(path) == (receipt["tree_sha256"], receipt["file_count"])
+        if not unchanged:
             raise ValueError(f"{name} extracted content changed; preserve it and recover the original asset.")
     return receipt
 
@@ -212,6 +234,7 @@ def _sync_one(name: str, asset: dict, local_archive: Path | None) -> dict:
             staged.mkdir()
             _extract(archive, staged, asset)
             receipt["tree_sha256"], receipt["file_count"] = _tree(staged)
+            receipt["total_bytes"] = _size(staged)[1]
         else:
             shutil.copyfile(archive, staged)
         if destination.exists():

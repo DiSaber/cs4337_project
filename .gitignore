@@ -21,6 +21,18 @@ dist/
 *.pt
 *.pth
 *.onnx
+# Archives and media anywhere in the tree (datasets, demo clips, annotated outputs).
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.part
+*.mp4
+*.avi
+*.mov
+*.mkv
+# Syncthing exclusions for these folders live in the College folder's .stignore.
 
 # Credentials and machine-local secrets.
 .env

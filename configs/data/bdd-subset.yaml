@@ -1,0 +1,26 @@
+# Frozen three-class BDD100K subset. Rules: specs/001-driving-object-detection/contracts/pipeline.md.
+# Changing any value here, or the source assets, requires a new profile_id.
+profile_id: bdd-subset-v2
+assets: configs/assets.yaml
+output: data/prepared/bdd-subset-v2
+# v2: a sequence is a recording session (filename prefix before the first '-'),
+# with one image per session. v1 used full stems and let 121 sessions cross
+# val/test; it was never used for training or reported (see results/experiments.md).
+sequence_identity: name_prefix
+images: data/raw/images/100k                  # <official split>/<name>.jpg
+labels: data/raw/labels/100k                  # <official split>/<name>.json (2018 per-image release)
+classes: [car, pedestrian, traffic_light]     # canonical IDs 0, 1, 2
+# Source category -> canonical class. van/caravan are documented car aliases.
+targets: {car: car, van: car, caravan: car, person: pedestrian, traffic light: traffic_light}
+# Known boxed categories counted but not trained. bike/motor are the source
+# names for bicycle/motorcycle. rider stays separate from pedestrian, as in BDD.
+non_targets: [bus, truck, rider, bike, motor, train, traffic sign]
+# Ignored-region categories exclude the whole image (none occur in the 2018 release).
+ignored_regions: [other person, other vehicle, trailer]
+# Polygon-only lane and drivable-area labels are not detection boxes.
+non_box_prefixes: [lane/, area/]
+selection:
+  key_prefix: "cs4337-v1:4337:"  # rank = SHA256(prefix + sequence ID), ties by ID
+  train: 5000                    # from official train
+  val: 1000                      # first 1,000 of official val
+  test: 1000                     # next 1,000 of official val (project holdout)

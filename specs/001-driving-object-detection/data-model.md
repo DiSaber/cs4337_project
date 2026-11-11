@@ -4,7 +4,7 @@ This is a small file-based research pipeline. These concepts describe the data a
 
 ## External assets
 
-Keep one asset inventory with type, public source, version/commit, published checksum if available, measured SHA-256, expected extracted files, local path, citation/terms reference, and verification outcome. It covers BDD images/Detection 2020 labels, the pinned YOLO source, and initial weights.
+Keep one asset inventory with type, public source, version/commit, published checksum if available, measured SHA-256, expected extracted files, local path, citation/terms reference, and verification outcome. It covers BDD images/labels (the 2018 per-image release for `bdd-subset-v1`; see research R2 update), the pinned YOLO source, and initial weights.
 
 Reuse verified files. Incomplete downloads remain unverified; retry their temporary files without damaging valid assets. Authorized existing archives undergo the same checks. Record manual access prerequisites and keep secrets out of configuration/logs.
 

@@ -22,18 +22,25 @@ assets:
   images:
     kind: zip
     version: BDD100K-100K-keyframes
-    url: null # Import an authorized archive using --images-archive.
+    # Author-hosted mirror (HTTP only: its HTTPS certificate has expired). Its
+    # bytes do not match the publisher MD5 (see docs/references.md), so the
+    # SHA-256 is our measured identity of the mirror archive.
+    url: http://dl.yf.io/bdd100k/bdd100k_images_100k.zip
     path: data/raw/images
     strip_prefix: ''
-    md5: 5a0359c86a0b8713adab1eee9a3041cb
-    expected: [bdd100k/images/100k/train, bdd100k/images/100k/val, bdd100k/images/100k/test]
+    sha256: afd149eadb49657ef5ad7bb6e9d77cc8b7927a576ee2b475b720028274e02784 # Measured download SHA-256.
+    expected: [100k/train, 100k/val, 100k/test]
     terms: https://doc.bdd100k.com/license.html
   labels:
+    # Detection 2020 labels are no longer downloadable (official hosts offline;
+    # see docs/references.md). This is the original 2018 per-image label release
+    # for the same 100K keyframes, from the dataset author's mirror. No publisher
+    # checksum exists for this archive; the SHA-256 is our measured identity.
     kind: zip
-    version: BDD100K-Detection-2020
-    url: null # Import an authorized archive using --labels-archive.
+    version: BDD100K-2018-labels-per-image
+    url: http://dl.yf.io/bdd100k/bdd100k_labels.zip
     path: data/raw/labels
     strip_prefix: ''
-    md5: b86a3e1b7edbcad421b7dad2b3987c94
-    expected: [bdd100k/labels/det_20/det_train.json, bdd100k/labels/det_20/det_val.json]
+    sha256: 7f1f9043c70a6ff0788a323cfb914aeced109a37b7150740d670a347c881394a # Measured download SHA-256.
+    expected: [100k/train, 100k/val]
     terms: https://doc.bdd100k.com/license.html

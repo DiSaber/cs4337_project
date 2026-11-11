@@ -4,6 +4,59 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: Cheap asset reuse check
+
+- Task: At user request, stop re-hashing every extracted file each time large data
+  is reused.
+- Assistance: Claude Code changed `_verified` in `src/driving_detection/assets.py`.
+  The first extraction still records the archive SHA-256 and full per-file tree
+  hash, and now also the total bytes. Reuse checks expected members, file count
+  and total bytes only. Weights and older receipts keep the full check. Updated
+  the `data prepare` message and `docs/usage.md`.
+- Why: On the Windows PC, hashing was fast (1.74 GB/s) but repeat runs still read
+  every file; the user chose one full pass, then size-only reuse checks.
+- Limits: A same-size edit to an extracted file is not detected on reuse.
+
+## 2026-11-10: D2 data acquisition and preparation (T009–T012)
+
+- Task: Obtain BDD100K data, implement `data prepare` (conversion, selection,
+  integrity checks, YOLO/COCO exports), run it and review the result.
+- Assistance: Claude Code searched for the Detection 2020 labels. The official hosts
+  are offline and no copy matching the published MD5 exists, so it switched to the
+  2018 per-image labels from the author mirror (recorded in `docs/references.md` and
+  research R2). It allowed HTTP asset URLs only with a pinned SHA-256. The mirror's
+  image archive does not match the published MD5 either: it is a repack with images
+  at `100k/<split>/`; a fresh re-download of the first 1.5 GB matched and all 100,000
+  member CRCs passed, so its measured SHA-256 is pinned. Claude Code wrote
+  `src/driving_detection/data.py` and `configs/data/bdd-subset.yaml`, ran preparation
+  on the Linux desktop, and found during review that v1 let 121 recording-session
+  name prefixes cross val/test. At the user's direction it added
+  `sequence_identity: name_prefix` (one image per session) and produced
+  `bdd-subset-v2`, updating research R4, the pipeline contract, tasks and quickstart.
+- Verification: Both archives matched their pinned SHA-256. `data prepare` passed its
+  built-in checks (exact counts, three classes per partition, zero sequence/content
+  overlap, 7,000 decoded images) and a second run reused the identical profile.
+  Scratch checks (not committed) confirmed one image per session, zero shared
+  prefixes, YOLO/COCO boxes matching the manifest, and overlays of a busy scene, a
+  clipped edge box, a negative and the smallest box. Details in `results/experiments.md`.
+- Limits: About 30 zero-size source boxes are kept as 1-pixel slivers. Preparation was
+  not repeated on Windows. No training has used the data yet.
+
+## 2026-11-10: Constitution 2.1.0 and large-data sync exclusions
+
+- Task: At user direction, limit review stops to commit points, and keep large data
+  out of Git and Syncthing before any downloads.
+- Assistance: Claude Code amended Principle V, Principle VIII and the workflow
+  section (version 2.1.0, with an amendment record). It added archive/video
+  patterns to `.gitignore`, a sync note to `docs/usage.md`, and project
+  `data/`, `external/`, `artifacts/` and `build/` rules to the College folder's
+  Syncthing `.stignore` (outside this repository).
+- Verification: Syncthing's local REST API (`/rest/db/ignores`) returned the new
+  patterns for the College folder with no parse error. Confirmed no tracked file
+  matches the new Git patterns.
+- Limits: Files already synced to other devices before this change stay there;
+  Syncthing does not delete ignored files remotely.
+
 ## 2026-11-10: US1 merge review and Principle VII reconciliation
 
 - Task: Review the spec and US1 implementation for merge to `main`; resolve the
