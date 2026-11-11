@@ -4,7 +4,20 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
-## 2026-11-10: D3 training wrapper (T014, smoke run pending)
+## 2026-11-11: D3 smoke training on Colab (T014)
+
+- Task: Run the T014 smoke training on a Colab GPU.
+- Assistance: Claude Code drove a Colab T4 session through the Colab CLI: it
+  installed the CUDA lock, synced assets, prepared data, and ran three smoke
+  attempts. It diagnosed the two failures: tensorboard was missing from the lock,
+  and NumPy 2.4 removed `trapz`. It fixed them by adding tensorboard to
+  `pyproject.toml` and the CUDA lock, and by adding a one-line launcher shim, with
+  upstream left unchanged. It downloaded the runs and stopped the session.
+- Verification: The manifest hashes matched D2. `smoke-03` completed, and its
+  `run.json`, log, history and `best.pt` head were reviewed (details in
+  `results/experiments.md`). The CPU lock was not updated.
+
+## 2026-11-10: D3 training wrapper (T014)
 
 - Task: Implement `train` around the pinned YOLOv5 v7.0 `train.py`.
 - Assistance: Claude Code read the pinned upstream source and wrote
@@ -21,8 +34,7 @@ do not need to be included.
 - Verification: The code compiles and `train --help` works. On the Linux desktop
   (no torch), a real `train` call passed the asset, profile-hash and dataset-path
   checks, then failed at the torch import and was recorded as `failed`; that
-  throwaway run was deleted. Training itself has not run; T014 stays open until
-  the Colab smoke run succeeds.
+  throwaway run was deleted. Training itself was verified the next day on Colab (entry above).
 
 ## 2026-11-10: D3 training configs (T013)
 

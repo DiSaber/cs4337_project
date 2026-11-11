@@ -187,3 +187,54 @@ compare the `exports` hashes in `profile.json`, for example
 `manifest.test.jsonl` `42286df2…`, `coco.val.json` `26f8e1b9…`, YOLO train labels
 tree `b351ebac…`. `profile.json` itself also holds a creation time, so its own
 hash differs per run. Preparation has not yet been repeated on Windows.
+
+## 2026-11-11: D3 smoke training on Colab (T014)
+
+Status: **smoke run `smoke-03` completed**. This proves that training works end to
+end. Its accuracy is not a project result and is not reported.
+
+**Environment.** Fresh Colab GPU runtime started from the Linux desktop with the
+Colab CLI: Python 3.13.16, Tesla T4 (driver 580.82.07), torch 2.9.1+cu128. The
+hash-checked `requirements/cuda-lock.txt` installed cleanly with `pip check` passing.
+This is the first real reinstall of that lock.
+
+**Data.** `assets sync` downloaded and verified the source, weights and both BDD
+archives. `check --device cuda:0` passed, and `data prepare` rebuilt `bdd-subset-v2`.
+Sync plus preparation took 15 min. The manifest hashes for train (`0f3b35bf…`),
+val (`73d93c05…`) and test (`42286df2…`), plus `yolo/dataset.yaml` (`fd880cae…`) and
+`coco.val.json` (`26f8e1b9…`), all match the Linux-desktop D2 run, so the frozen
+profile reproduces on a second machine.
+
+**Attempts.** All three are kept in `artifacts/runs/` on the Linux desktop:
+
+| Run | Status | Cause / result |
+| --- | --- | --- |
+| `smoke-01` | failed | `ModuleNotFoundError: tensorboard`. Pinned YOLOv5 imports it unconditionally, but it was missing from the locks and `pyproject.toml`. Added `tensorboard>=2.4.1,<3` and its 7 locked wheels. |
+| `smoke-02` | failed | The epoch trained, then upstream validation called `np.trapz`, which NumPy 2.4 removed (lock has 2.5.4). Fixed with a one-line launcher that sets `numpy.trapz = numpy.trapezoid` before running unchanged `train.py`. |
+| `smoke-03` | completed | 1 epoch, size 320, batch 2 (accumulate 32), seed 4337, `cuda:0`; 0.065 h. |
+
+**Review of `smoke-03`.**
+- `run.json` has all FR-012 fields: label `smoke`, `reportable_accuracy: false`,
+  project commit `fdbf091`, source/weights/profile/manifest hashes, exact upstream
+  command, effective batch, seeds, nondeterminism notes, 80 installed packages,
+  hardware and budget use.
+- `uncommitted_changes: true` is correct: the VM ran the NumPy fix before it was
+  committed.
+- `results.csv` has 1 epoch. The chosen epoch is 0, and `best.pt` (`cca32174…`) loaded
+  on `cuda:0` with head names car, pedestrian, traffic_light and 3 classes.
+- In the log, upstream transferred 343/349 weight tensors (the class layers are
+  replaced for 3 classes), autoanchor stayed off, AMP checks passed, and the GitHub
+  check was skipped.
+- Strict deterministic mode raised no error on the T4.
+- Upstream's validation of `best.pt` after fusing layers differed from the in-training
+  value only in the fourth decimal of mAP@0.5:0.95. Small differences like this should
+  be expected between repeats.
+- The log holds 2,503 harmless `FutureWarning`s about deprecated `torch.cuda.amp`
+  calls in upstream.
+
+**Not done.** The Windows CPU lock still lacks tensorboard and needs the same addition
+on that machine. Colab storage was released when the session stopped, so the
+baseline (T015) must sync and prepare again (about 15 min).
+
+**Retrieval.** `artifacts/runs/smoke-0{1,2,3}/` on the Linux desktop (not in Git;
+about 30 MB). Repeat with the Colab steps in [colab-setup](../docs/colab-setup.md).

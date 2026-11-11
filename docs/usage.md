@@ -165,8 +165,10 @@ Load a trained checkpoint in Python with
 
 Compatibility settings (upstream files stay unchanged): the training process gets
 `TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1` because pinned `train.py` loads full pickled
-models, and `--noplots` because pinned plotting needs a Pillow method removed in
-Pillow 10. Upstream also downloads `Arial.ttf` into `artifacts/yolo-config` the first
+models; a one-line launcher sets `numpy.trapz = numpy.trapezoid` before running
+`train.py`, because NumPy 2.4 removed `trapz` and pinned validation AP still calls
+it; and `--noplots` is passed because pinned plotting needs a Pillow method removed
+in Pillow 10. Upstream also downloads `Arial.ttf` into `artifacts/yolo-config` the first
 time and writes `labels/*.cache` files beside the prepared YOLO labels.
 
 ## CLI help and package-only setup

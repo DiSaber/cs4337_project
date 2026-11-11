@@ -21,6 +21,12 @@ ASSETS_CONFIG = Path("configs/assets.yaml")
 CLASS_NAMES = ["car", "pedestrian", "traffic_light"]
 REQUIRED = ("label", "weights", "imgsz", "batch", "epochs", "workers", "seed", "budget_gpu_hours", "optimizer", "noautoanchor", "patience", "hyp")
 NOMINAL_BATCH = 64  # upstream train.py: nbs = 64
+# Runs the unchanged train.py after restoring numpy.trapz, which NumPy 2.4 removed;
+# pinned utils/metrics.py still calls it when computing validation AP.
+LAUNCHER = (
+    "import runpy, sys, numpy; numpy.trapz = numpy.trapezoid; "
+    "sys.argv = sys.argv[1:]; runpy.run_path(sys.argv[0], run_name='__main__')"
+)
 
 
 def _relative(path: Path) -> str:
@@ -137,7 +143,7 @@ def train(args, settings: dict) -> None:
     hyp_path = run_dir / "hyp.input.yaml"
     hyp_path.write_text(yaml.safe_dump(settings["hyp"], sort_keys=False), encoding="utf-8")
     command = [
-        sys.executable, str(source / "train.py"),
+        sys.executable, "-c", LAUNCHER, str(source / "train.py"),
         "--data", str(dataset_yaml),
         "--weights", str(weights),
         "--hyp", str(hyp_path),
@@ -176,7 +182,7 @@ def train(args, settings: dict) -> None:
         model_source={"version": source_receipt["definition"]["version"], "path": source_receipt["path"], "tree_sha256": source_receipt["tree_sha256"]},
         initial_weights={"version": weights_asset["version"], "path": weights_asset["path"], "sha256": weights_receipt["sha256"]},
         data=data_record,
-        upstream_command=["python", *(_relative(Path(part)) if Path(part).is_absolute() else part for part in command[1:])],
+        upstream_command=["python", "-c", "<LAUNCHER>", *(_relative(Path(part)) if Path(part).is_absolute() else part for part in command[3:])],
         effective_batch={
             "batch": batch,
             "nominal_batch": NOMINAL_BATCH,
@@ -192,6 +198,7 @@ def train(args, settings: dict) -> None:
         environment=_environment(args.device),
         compatibility=[
             "TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1 for the upstream process: pinned train.py loads full pickled models.",
+            "numpy.trapz = numpy.trapezoid before train.py runs: NumPy 2.4 removed trapz; pinned validation AP still calls it.",
             "--noplots: pinned plotting needs Pillow font.getsize (removed in Pillow 10); history is results.csv.",
             "train.py runs from the source folder, so its GitHub update check finds no .git and is skipped.",
             "Upstream downloads Arial.ttf into artifacts/yolo-config on first use and writes labels/*.cache files beside the prepared YOLO labels.",

@@ -116,8 +116,9 @@ large artifacts out of Git. New data preparation and training remain later phase
 
 ## D3 smoke training on Colab (T014)
 
-Status: **not run yet**. These steps prepare the data in Colab and run the one-epoch
-smoke training. Select a GPU runtime and clone the branch that contains the train
+Status: **run on 2026-11-11** (`smoke-03` completed; see
+[experiments](../results/experiments.md)). These steps prepare the data in Colab and
+run the one-epoch smoke training. Select a GPU runtime and clone the branch that contains the train
 command (`001-driving-object-detection-us3` until it is merged), using the clone
 cell above with that branch name. The CUDA lock is for Python 3.13; if Colab now
 has another version, stop and record it instead of forcing the lock.
@@ -154,11 +155,11 @@ set -euo pipefail
 cd /content/cs4337_project
 .venv-colab/bin/python -m driving_detection train \
   --profile data/prepared/bdd-subset-v2/profile.json \
-  --config configs/train/smoke.yaml --run-id smoke-01 --device cuda:0
+  --config configs/train/smoke.yaml --run-id smoke-04 --device cuda:0
 ```
 
 Expected: exit 0, `status: completed` and `label: smoke` in
-`artifacts/runs/smoke-01/run.json`, one row in `results.csv`, and a `head` entry
+`artifacts/runs/<run-id>/run.json`, one row in `results.csv`, and a `head` entry
 with the three canonical class names. Download the run before the runtime expires
 (about 30 MB with both checkpoints):
 
@@ -166,11 +167,11 @@ with the three canonical class names. Download the run before the runtime expire
 import shutil
 from google.colab import files
 
-bundle = shutil.make_archive('/content/smoke-01', 'zip',
+bundle = shutil.make_archive('/content/smoke-04', 'zip',
                              root_dir='/content/cs4337_project/artifacts/runs',
-                             base_dir='smoke-01')
+                             base_dir='smoke-04')
 files.download(bundle)
 ```
 
 If training fails, keep the run directory (its `run.json` and `train.log` show the
-reason) and return it as well; a retry needs a new run ID such as `smoke-02`.
+reason) and return it as well; a retry needs a new run ID such as `smoke-05`. IDs 01–03 are used.
