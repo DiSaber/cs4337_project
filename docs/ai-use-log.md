@@ -13,8 +13,8 @@ do not need to be included.
   the overlays and wrote the results and limitations.
 - Verification: Two evaluation runs gave byte-identical predictions and identical
   metrics; the project AP agrees with upstream's training-time validation; failure
-  overlays were inspected by eye. No test-partition data was read. Reviewer check
-  and the video demo are still open.
+  overlays were inspected by eye. No test-partition data was read. Marc Benamou
+  reviewed and accepted the D1–D5 evidence; the video demo is deferred to D9.
 
 ## 2026-11-11: D3 baseline audit (T015)
 
@@ -35,7 +35,7 @@ do not need to be included.
 - Verification: `smoke-val-01` completed on all 1,000 val images; TP + FN matched
   the label counts per class; four images (a negative, misses, a false detection and
   a duplicate) were hand-counted from overlays and matched the matcher. Test-partition
-  refusals were run. A team member still needs to confirm the hand count.
+  refusals were run. Marc Benamou confirmed the hand count.
 
 ## 2026-11-11: D4 inference (T016–T017)
 

@@ -312,7 +312,7 @@ torch 2.9.1+cu128 on CPU):
 
 **Hand count** (overlays in `artifacts/runs/smoke-val-01/review/`, labels green,
 predictions at score 0.25 and above red). Counted by Claude Code from the overlays;
-a team member still needs to confirm them:
+Marc Benamou confirmed them on 2026-11-11:
 
 | Sample | Labels | Predictions >= 0.25 | Hand count | Reported |
 | --- | --- | --- | --- | --- |
@@ -361,11 +361,11 @@ project evaluator result is T023.
 `MyDrive/cs4337/runs/baseline-01/` in Google Drive (not in Git). Load commands are in
 [usage](../docs/usage.md#training).
 
-## 2026-11-11: D5 baseline validation evaluation (T023, partly done)
+## 2026-11-11: D5 baseline validation evaluation (T023)
 
-Status: **validation metrics, timing and examples are done for `baseline-01`**.
-Still open: a trained-model video demo (T018 has no real driving video yet) and a
-reviewer's D1–D5 check.
+Status: **core accepted**. Validation metrics, timing and examples are done for
+`baseline-01`, and Marc Benamou reviewed the D1–D5 evidence and accepted it on
+2026-11-11. The trained-model video demo is deferred to the optional D9 dashcam study.
 
 **Runs.** Linux desktop CPU (AMD Ryzen 9 9950X, 16 torch threads), Python 3.13.5,
 torch 2.9.1+cu128 on CPU from the hash-checked CUDA lock; config
