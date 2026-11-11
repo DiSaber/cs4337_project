@@ -59,9 +59,15 @@ Outputs are `external/yolov5-v7.0`, `external/weights/yolov5s.pt`,
 `artifacts/assets.json` stores asset
 identities/readiness; `artifacts/asset-receipts/` stores verified receipts.
 Sync stages assets before promotion and refuses existing unverified/changed
-destinations. Repeated sync hashes extracted contents, so checking large data
-still reads the files but does not download duplicates. Python bytecode caches
-are excluded from extracted-content identity.
+destinations. The first extraction is fully verified: the archive SHA-256 and a
+SHA-256 of every extracted file (`tree_sha256` in the receipt). Reuse (repeated
+`assets sync`, `check`, `data prepare`) only checks the expected members, file
+count and total bytes against the receipt, so it is fast but would not catch an
+edit that keeps a file's size. To fully re-verify, move the asset and its receipt
+aside and sync again from the cached archive. Receipts written before this size
+check existed still get the full per-file hash on reuse. Single-file assets
+(weights) are always fully hashed. Python bytecode caches are excluded from
+extracted-content identity.
 
 Download caches live under `external/downloads/`. An interrupted `.part` is
 unverified; retry restarts its download rather than resuming. A corrupt completed

@@ -4,6 +4,19 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-10: Cheap asset reuse check
+
+- Task: At user request, stop re-hashing every extracted file each time large data
+  is reused.
+- Assistance: Claude Code changed `_verified` in `src/driving_detection/assets.py`.
+  The first extraction still records the archive SHA-256 and full per-file tree
+  hash, and now also the total bytes. Reuse checks expected members, file count
+  and total bytes only. Weights and older receipts keep the full check. Updated
+  the `data prepare` message and `docs/usage.md`.
+- Why: On the Windows PC, hashing was fast (1.74 GB/s) but repeat runs still read
+  every file; the user chose one full pass, then size-only reuse checks.
+- Limits: A same-size edit to an extracted file is not detected on reuse.
+
 ## 2026-11-10: D2 data acquisition and preparation code (T009–T011, in progress)
 
 - Task: Obtain BDD100K data and implement `data prepare` (conversion, selection,

@@ -329,7 +329,7 @@ def prepare(args, settings: dict) -> None:
     classes = settings["classes"]
     output = _local_output(settings["output"])
     asset_settings = load_config(workspace_path(settings["assets"]))
-    print("Verifying image and label assets (hashes every extracted file)...", flush=True)
+    print("Checking image and label assets against their receipts (file count and size)...", flush=True)
     assets = {}
     for name in ("images", "labels"):
         receipt = _verified(name, _definition(asset_settings, name))
