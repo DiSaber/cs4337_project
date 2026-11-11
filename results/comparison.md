@@ -46,3 +46,6 @@ is applied to the measured CPU result only.
   desktop in `artifacts/runs/` (not in Git).
 
 The frozen selection is `results/selected.yaml`, saved before any test image was read.
+
+The selected configuration was then run once on the held-out test subset as
+`final-01` (AP50:95 0.236; see [experiments](experiments.md)).

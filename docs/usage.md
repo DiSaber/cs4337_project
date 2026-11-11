@@ -303,6 +303,11 @@ python -m driving_detection evaluate --model artifacts/runs/baseline-01/weights/
   --run-id final-01 --device cpu
 ```
 
+The final result is `artifacts/runs/final-01/` (2026-11-11): AP50 0.526, AP50:95 0.236,
+precision 0.624, recall 0.607 on the 1,000-image project held-out test subset, close
+to validation. Details are in [experiments](../results/experiments.md). This subset
+comes from BDD's official validation split; it is not the official BDD test benchmark.
+
 Before reading any test image it compares every selected file's path and bytes, the
 device and the torch version with the actual inputs, and refuses with a list of the
 differences. A refused or failed attempt still leaves its `run.json`. Run it once.

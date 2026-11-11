@@ -4,6 +4,15 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Final held-out test (T027)
+
+- Task: Run the one selected test evaluation and record it.
+- Assistance: Claude Code ran `final-01` with `results/selected.yaml` after Marc
+  Benamou confirmed the selection, inspected an example overlay and wrote the result.
+- Verification: The selection checks passed from a clean commit; all 1,000 test
+  images were processed with no undefined values; numbers were copied from
+  `metrics.json`. The test set was used once.
+
 ## 2026-11-11: D6 selection checks, comparison and selection (T024–T026)
 
 - Task: Guard the test partition, compare size 960 against 640 on validation, and
