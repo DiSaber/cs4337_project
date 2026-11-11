@@ -265,7 +265,8 @@ lock's first install outside Colab.
 any project partition. Also a corrupt `.jpg` (text bytes), a `.txt` file, a plain
 gray 640 × 360 PNG, a 20-frame slideshow MP4 made from the five images, and an MJPG
 AVI cut in half (reports 10 frames, decodes 5). The slideshow only exercises the
-video code; it is not the T018 demo video.
+video code. A real driving-video demo is deferred to the optional D9 dashcam study
+(decision by Marc Benamou, 2026-11-11).
 
 | Run | Model | Input | Result |
 | --- | --- | --- | --- |
