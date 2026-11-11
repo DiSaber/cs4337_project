@@ -78,7 +78,8 @@ identity. It also supplies the removed Pillow font `getsize` method through
 
 The [pinned YOLO requirements](https://github.com/ultralytics/yolov5/blob/915bbf294bb74c859f0b41f1c23bc395014ea679/requirements.txt)
 explain the additional runtime dependencies declared in `pyproject.toml`.
-External trackers, export packages and TensorBoard are not required by this setup.
+External trackers and export packages are not required by this setup. TensorBoard is
+installed only because pinned YOLOv5 `train.py` imports it unconditionally; no logs are viewed.
 `setuptools<81` retains the old source's `pkg_resources` import. See the
 [PyTorch installation profiles](https://pytorch.org/get-started/previous-versions/),
 [torchvision pairing matrix](https://github.com/pytorch/vision),

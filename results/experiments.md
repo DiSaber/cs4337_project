@@ -10,7 +10,7 @@ No training, predictions, accuracy measurements or speed benchmarks were run.
 | Platform | Windows amd64; CPython 3.14.7, Anaconda-provided interpreter |
 | Installation | New isolated `.venv`, without system site packages; global pip 26.1.2 populated it |
 | Main libraries | torch 2.15.0+cpu, torchvision 0.29.2+cpu, NumPy 2.5.4, Pillow 12.3.0, OpenCV 4.14.0.94, PyYAML 6.0.3, pycocotools 2.0.11 |
-| Complete dependency record | 57 external distributions in `requirements/cpu-lock.txt`; exact wheel origins/SHA-256 in `requirements/cpu-wheels.json` |
+| Complete dependency record | 64 external distributions in `requirements/cpu-lock.txt` (57 at setup, plus tensorboard's 7 added 2026-11-11); exact wheel origins/SHA-256 in `requirements/cpu-wheels.json` |
 | Source | Official YOLOv5 archive at commit `915bbf294bb74c859f0b41f1c23bc395014ea679`; 144 extracted files, upstream files unchanged |
 | Source archive SHA-256 | `5aac5c8c40f89831fee611621b5ef3dbd7a7633278713b4dd0d059e1a631c7b0` (measured official download) |
 | Checkpoint SHA-256 | `8b3b748c1e592ddd8868022e8732fde20025197328490623cc16c6f24d0782ee` (measured official v7.0 download) |
@@ -187,3 +187,100 @@ compare the `exports` hashes in `profile.json`, for example
 `manifest.test.jsonl` `42286df2…`, `coco.val.json` `26f8e1b9…`, YOLO train labels
 tree `b351ebac…`. `profile.json` itself also holds a creation time, so its own
 hash differs per run. Preparation has not yet been repeated on Windows.
+
+## 2026-11-11: D3 smoke training on Colab (T014)
+
+Status: **smoke run `smoke-03` completed**. This proves that training works end to
+end. Its accuracy is not a project result and is not reported.
+
+**Environment.** Fresh Colab GPU runtime started from the Linux desktop with the
+Colab CLI: Python 3.13.16, Tesla T4 (driver 580.82.07), torch 2.9.1+cu128. The
+hash-checked `requirements/cuda-lock.txt` installed cleanly with `pip check` passing.
+This is the first real reinstall of that lock.
+
+**Data.** `assets sync` downloaded and verified the source, weights and both BDD
+archives. `check --device cuda:0` passed, and `data prepare` rebuilt `bdd-subset-v2`.
+Sync plus preparation took 15 min. The manifest hashes for train (`0f3b35bf…`),
+val (`73d93c05…`) and test (`42286df2…`), plus `yolo/dataset.yaml` (`fd880cae…`) and
+`coco.val.json` (`26f8e1b9…`), all match the Linux-desktop D2 run, so the frozen
+profile reproduces on a second machine.
+
+**Attempts.** All three are kept in `artifacts/runs/` on the Linux desktop:
+
+| Run | Status | Cause / result |
+| --- | --- | --- |
+| `smoke-01` | failed | `ModuleNotFoundError: tensorboard`. Pinned YOLOv5 imports it unconditionally, but it was missing from the locks and `pyproject.toml`. Added `tensorboard>=2.4.1,<3` and its 7 locked wheels. |
+| `smoke-02` | failed | The epoch trained, then upstream validation called `np.trapz`, which NumPy 2.4 removed (lock has 2.5.4). Fixed with a one-line launcher that sets `numpy.trapz = numpy.trapezoid` before running unchanged `train.py`. |
+| `smoke-03` | completed | 1 epoch, size 320, batch 2 (accumulate 32), seed 4337, `cuda:0`; 0.065 h. |
+
+**Review of `smoke-03`.**
+- `run.json` has all FR-012 fields: label `smoke`, `reportable_accuracy: false`,
+  project commit `fdbf091`, source/weights/profile/manifest hashes, exact upstream
+  command, effective batch, seeds, nondeterminism notes, 80 installed packages,
+  hardware and budget use.
+- `uncommitted_changes: true` is correct: the VM ran the NumPy fix before it was
+  committed.
+- `results.csv` has 1 epoch. The chosen epoch is 0, and `best.pt` (`cca32174…`) loaded
+  on `cuda:0` with head names car, pedestrian, traffic_light and 3 classes.
+- In the log, upstream transferred 343/349 weight tensors (the class layers are
+  replaced for 3 classes), autoanchor stayed off, AMP checks passed, and the GitHub
+  check was skipped.
+- Strict deterministic mode raised no error on the T4.
+- Upstream's validation of `best.pt` after fusing layers differed from the in-training
+  value only in the fourth decimal of mAP@0.5:0.95. Small differences like this should
+  be expected between repeats.
+- The log holds 2,503 harmless `FutureWarning`s about deprecated `torch.cuda.amp`
+  calls in upstream.
+
+**CPU lock.** tensorboard and its 6 dependencies (same versions as the CUDA lock)
+were added to `requirements/cpu-lock.txt` and `cpu-wheels.json` on the Windows
+machine on 2026-11-11; a hash-checked dry-run install of the lock and `pip check`
+passed. Training was not run on CPU. Colab storage was released when the session stopped, so the
+baseline (T015) must sync and prepare again (about 15 min).
+
+**Lost baseline setup attempt (2026-11-11).** A T4 session started from the Windows
+machine with the Colab CLI (officially Linux/macOS only) installed the CUDA lock
+(`pip check` passed) and verified source, weights and images. About 20 minutes in,
+while labels were downloading, the session disappeared from the server; the cause is
+unknown. Preparation and training never started, so no run directory exists and
+`baseline-01` is still unused.
+
+**Retrieval.** `artifacts/runs/smoke-0{1,2,3}/` on the Linux desktop (not in Git;
+about 30 MB). Repeat with the Colab steps in [colab-setup](../docs/colab-setup.md).
+
+## 2026-11-11: D3 baseline training (T015)
+
+Status: **`baseline-01` completed**. This is the project's trained baseline.
+
+**Run.** Started with `notebooks/t015_baseline_colab.ipynb` in a browser Colab
+session on a Tesla T4 (Python 3.13.16, torch 2.9.1+cu128, CUDA lock), project commit
+`784ad91` with no local changes. Fresh asset sync and preparation reproduced the D2
+hashes (the notebook stops otherwise). Training ran 20 of 20 epochs in 0.813 h
+(0.824 h including setup inside `train`), well inside the 8 GPU-hour budget, at
+batch 8 with no fallback (accumulation 8 to the nominal 64, weight decay 0.0005).
+
+**Chosen checkpoint.** Epoch 16 (0-based) has the highest upstream validation fitness,
+0.1 × 0.52017 + 0.9 × 0.23976 = 0.2678; no other epoch ties. Upstream validation
+mAP@0.5:0.95 rose from 0.088 after epoch 0 to 0.237–0.240 over epochs 12–19, so the
+model had mostly stopped improving. These are upstream training-time numbers; the
+project evaluator result is T023.
+
+**Audit** (checked by Claude Code; Marc Benamou reviewed and accepted it on 2026-11-11):
+- `run.json` has label `baseline`, `reportable_accuracy: true`, status, times,
+  command, source tree hash `7bbe4263…`, initial weights `8b3b748c…`, profile and
+  train/val manifest hashes (train `0f3b35bf…`, val `73d93c05…`), the exact upstream
+  command, effective batch, seeds (4337, upstream 4338, deterministic requested),
+  nondeterminism notes, 80 installed packages, hardware, budget, history and the
+  chosen epoch.
+- `best.pt` `8a1f80c8ab1fb84639709f7f1f07f36d6e9d3ef53cf51aec9432fa27d70dd1cb` and
+  `last.pt` `af0ba7f0…` match their recorded hashes. `best.pt` loaded on the Linux
+  desktop CPU with head car, pedestrian, traffic_light (3 classes), as it did on
+  `cuda:0` after training.
+- `resolved-config.yaml` matches `configs/train/baseline.yaml` (comments aside).
+- Log: 343/349 tensors transferred (class layers replaced), autoanchor off, AMP
+  checks passed, no errors; 12,503 upstream `FutureWarning`s about `torch.cuda.amp`.
+- The test partition was not used.
+
+**Retrieval.** `artifacts/runs/baseline-01/` on the Linux desktop and
+`MyDrive/cs4337/runs/baseline-01/` in Google Drive (not in Git). Load commands are in
+[usage](../docs/usage.md#training).

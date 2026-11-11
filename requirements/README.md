@@ -31,3 +31,11 @@ install the Windows CPU lock in Colab or the Linux CUDA lock on Windows. The loc
 captures a GPU environment that passed first/repeated readiness checks; reinstalling
 the finalized lock in another Colab runtime has not been separately performed.
 This is setup evidence, not training or broader GPU compatibility evidence.
+
+On 2026-11-11, `tensorboard` 2.21.0 and its six new dependencies (absl-py, grpcio,
+Markdown, protobuf, tensorboard-data-server, Werkzeug) were added to
+`cuda-lock.txt` from a Colab pip install report. Pinned YOLOv5 imports tensorboard
+unconditionally, so training failed without it. The updated lock passed a
+hash-checked dry run on that runtime and matched its 78 installed packages.
+`cuda-wheels.json` still records only the original installs. `cpu-lock.txt` does
+not include tensorboard yet; resolve and add it on Windows before CPU training.

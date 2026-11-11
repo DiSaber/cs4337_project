@@ -4,6 +4,80 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: D3 baseline audit (T015)
+
+- Task: Check and record the completed `baseline-01` training run.
+- Assistance: Claude Code checked checkpoint hashes, loaded `best.pt`, recomputed the
+  chosen epoch from `results.csv`, compared the resolved config, scanned the log and
+  wrote the experiment record and retrieval notes.
+- Verification: All checks above passed (details in `results/experiments.md`). The
+  Marc Benamou reviewed and accepted the FR-012 audit.
+
+## 2026-11-11: Colab notebook for the baseline run (T015 setup)
+
+- Task: Give the T015 baseline training a notebook that can be uploaded and run in
+  the browser.
+- Assistance: Claude Code wrote `notebooks/t015_baseline_colab.ipynb` from the
+  T015 steps in `docs/colab-setup.md`: clone, Drive mount, install/sync/prepare, a
+  hash check against the D2 profile that stops on a mismatch, a 10-minute run-folder
+  copy to Drive, training, and a final copy and check.
+- Verification: The notebook parses as valid JSON, and the `run.json` fields it
+  prints (`status`, `label`, `head`) match `train.py`. Marc Benamou started it in
+  Colab on 2026-11-11; the training result is not yet known.
+
+## 2026-11-11: Windows CPU lock gets tensorboard
+
+- Task: Bring the Windows CPU lock in line with the tensorboard dependency added for
+  the Colab smoke run.
+- Assistance: Claude Code installed `tensorboard>=2.4.1,<3` into the local `.venv`
+  and added the 7 resolved wheels and hashes to `requirements/cpu-lock.txt` and
+  `cpu-wheels.json`.
+- Verification: Same versions as the CUDA lock; a hash-checked dry-run install of the
+  lock and `pip check` passed on Windows/CPython 3.14.7.
+
+## 2026-11-11: D3 smoke training on Colab (T014)
+
+- Task: Run the T014 smoke training on a Colab GPU.
+- Assistance: Claude Code drove a Colab T4 session through the Colab CLI: it
+  installed the CUDA lock, synced assets, prepared data, and ran three smoke
+  attempts. It diagnosed the two failures: tensorboard was missing from the lock,
+  and NumPy 2.4 removed `trapz`. It fixed them by adding tensorboard to
+  `pyproject.toml` and the CUDA lock, and by adding a one-line launcher shim, with
+  upstream left unchanged. It downloaded the runs and stopped the session.
+- Verification: The manifest hashes matched D2. `smoke-03` completed, and its
+  `run.json`, log, history and `best.pt` head were reviewed (details in
+  `results/experiments.md`). The CPU lock was not updated.
+
+## 2026-11-10: D3 training wrapper (T014)
+
+- Task: Implement `train` around the pinned YOLOv5 v7.0 `train.py`.
+- Assistance: Claude Code read the pinned upstream source and wrote
+  `src/driving_detection/train.py`. It runs `train.py` as a subprocess with an
+  argument list, checks verified assets and profile hashes first, refuses
+  installed trackers, saves the log/history/checkpoints and FR-012 fields in
+  `run.json`, picks the epoch from `results.csv` (upstream erases it from
+  `best.pt`) and loads `best.pt` to check its three-class head. It found two
+  upstream incompatibilities with the locked torch 2.9/Pillow 12 and worked around
+  them without editing upstream (`TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1`, `--noplots`).
+  It also generalized the model loader in `assets.py`, mapped budget stops to
+  `interrupted`, added a `label` key to both training configs, and documented
+  training and the Colab smoke steps.
+- Verification: The code compiles and `train --help` works. On the Linux desktop
+  (no torch), a real `train` call passed the asset, profile-hash and dataset-path
+  checks, then failed at the torch import and was recorded as `failed`; that
+  throwaway run was deleted. Training itself was verified the next day on Colab (entry above).
+
+## 2026-11-10: D3 training configs (T013)
+
+- Task: Write `configs/train/baseline.yaml` and `configs/train/smoke.yaml`.
+- Assistance: Claude Code wrote them from the pipeline contract and the pinned
+  `hyp.scratch-low.yaml`.
+- Verification: A YAML comparison showed smoke differs from baseline only in epochs,
+  image size and batch, and baseline differs from upstream hyperparameters only in the
+  disabled translate/scale/mosaic augmentations. In the pinned source, `patience: 0`
+  disables early stopping and a strict `fi > best_fitness` keeps the earliest epoch on
+  ties. No training has been run yet; the wrapper (T014) consumes these files.
+
 ## 2026-11-10: Cheap asset reuse check
 
 - Task: At user request, stop re-hashing every extracted file each time large data
