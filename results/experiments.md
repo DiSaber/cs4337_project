@@ -287,3 +287,40 @@ still gives 275 low-score boxes on the gray image and drops zero-size boxes
 (25 in the edge run, 47 over the 20 video frames) as `invalid_boxes`, as expected for an almost untrained model.
 
 **Retrieval.** `artifacts/runs/dev-*` on the Linux desktop (not in Git).
+
+## 2026-11-11: D3 baseline training (T015)
+
+Status: **`baseline-01` completed**. This is the project's trained baseline.
+
+**Run.** Started with `notebooks/t015_baseline_colab.ipynb` in a browser Colab
+session on a Tesla T4 (Python 3.13.16, torch 2.9.1+cu128, CUDA lock), project commit
+`784ad91` with no local changes. Fresh asset sync and preparation reproduced the D2
+hashes (the notebook stops otherwise). Training ran 20 of 20 epochs in 0.813 h
+(0.824 h including setup inside `train`), well inside the 8 GPU-hour budget, at
+batch 8 with no fallback (accumulation 8 to the nominal 64, weight decay 0.0005).
+
+**Chosen checkpoint.** Epoch 16 (0-based) has the highest upstream validation fitness,
+0.1 × 0.52017 + 0.9 × 0.23976 = 0.2678; no other epoch ties. Upstream validation
+mAP@0.5:0.95 rose from 0.088 after epoch 0 to 0.237–0.240 over epochs 12–19, so the
+model had mostly stopped improving. These are upstream training-time numbers; the
+project evaluator result is T023.
+
+**Audit** (Claude Code; a teammate still needs to go through the FR-012 fields):
+- `run.json` has label `baseline`, `reportable_accuracy: true`, status, times,
+  command, source tree hash `7bbe4263…`, initial weights `8b3b748c…`, profile and
+  train/val manifest hashes (train `0f3b35bf…`, val `73d93c05…`), the exact upstream
+  command, effective batch, seeds (4337, upstream 4338, deterministic requested),
+  nondeterminism notes, 80 installed packages, hardware, budget, history and the
+  chosen epoch.
+- `best.pt` `8a1f80c8ab1fb84639709f7f1f07f36d6e9d3ef53cf51aec9432fa27d70dd1cb` and
+  `last.pt` `af0ba7f0…` match their recorded hashes. `best.pt` loaded on the Linux
+  desktop CPU with head car, pedestrian, traffic_light (3 classes), as it did on
+  `cuda:0` after training.
+- `resolved-config.yaml` matches `configs/train/baseline.yaml` (comments aside).
+- Log: 343/349 tensors transferred (class layers replaced), autoanchor off, AMP
+  checks passed, no errors; 12,503 upstream `FutureWarning`s about `torch.cuda.amp`.
+- The test partition was not used.
+
+**Retrieval.** `artifacts/runs/baseline-01/` on the Linux desktop and
+`MyDrive/cs4337/runs/baseline-01/` in Google Drive (not in Git). Load commands are in
+[usage](../docs/usage.md#training).
