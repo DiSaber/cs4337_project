@@ -4,6 +4,18 @@ Record a concise entry for each completed AI-assisted feature or task: date, tas
 assistance used, and review or verification performed. Exact conversations and responses
 do not need to be included.
 
+## 2026-11-11: Baseline validation evaluation (T023 part, T018 images)
+
+- Task: Evaluate `baseline-01` on validation, pick success/failure examples and run
+  it on new-scene images.
+- Assistance: Claude Code added rule-based example selection and overlays to
+  `evaluate.py`, ran `baseline-val-01/-02` and `baseline-images-01` on CPU, reviewed
+  the overlays and wrote the results and limitations.
+- Verification: Two evaluation runs gave byte-identical predictions and identical
+  metrics; the project AP agrees with upstream's training-time validation; failure
+  overlays were inspected by eye. No test-partition data was read. Marc Benamou
+  reviewed and accepted the D1–D5 evidence; the video demo is deferred to D9.
+
 ## 2026-11-11: D3 baseline audit (T015)
 
 - Task: Check and record the completed `baseline-01` training run.
@@ -12,6 +24,18 @@ do not need to be included.
   wrote the experiment record and retrieval notes.
 - Verification: All checks above passed (details in `results/experiments.md`). The
   Marc Benamou reviewed and accepted the FR-012 audit.
+
+## 2026-11-11: D5 evaluator and smoke pipeline (T020–T022)
+
+- Task: Validation evaluation (COCO AP, fixed-point precision/recall, timing) and
+  connecting data, training, inference and evaluation with the smoke checkpoint.
+- Assistance: Claude Code wrote `src/driving_detection/evaluate.py`, cached the
+  upstream imports in `infer.py` so timing does not re-read config files, ran the
+  smoke evaluation and drew review overlays.
+- Verification: `smoke-val-01` completed on all 1,000 val images; TP + FN matched
+  the label counts per class; four images (a negative, misses, a false detection and
+  a duplicate) were hand-counted from overlays and matched the matcher. Test-partition
+  refusals were run. Marc Benamou confirmed the hand count.
 
 ## 2026-11-11: D4 inference (T016–T017)
 

@@ -5,6 +5,7 @@ load_detector, read_image and detect are also used by evaluation.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import importlib
 import json
@@ -32,8 +33,9 @@ def _relative(path: Path) -> str:
     return path.relative_to(workspace).as_posix() if path.is_relative_to(workspace) else str(path)
 
 
+@functools.cache
 def _upstream():
-    """Import the pinned YOLOv5 letterbox, NMS and box-scaling functions."""
+    """Import the pinned YOLOv5 letterbox, NMS and box-scaling functions once."""
     source = _local_output(_definition(load_config(workspace_path(ASSETS_CONFIG)), "source")["path"])
     sys.path.insert(0, str(source))
     try:
@@ -75,6 +77,19 @@ def load_detector(model_path: Path, device: str, reference_coco: bool):
             raise ValueError(f"Checkpoint head has names {names} and {classes} classes; expected {CLASS_NAMES}.")
         head = {"kind": "trained", "names": names, "classes": classes}
     return model, head
+
+
+def model_record(model_path: Path, head: dict) -> dict:
+    """Identify the checkpoint for run.json, including its training run's label."""
+    # A trained checkpoint sits in artifacts/runs/<id>/weights/; its run.json says smoke or baseline.
+    training_run = {}
+    train_record = model_path.resolve().parent.parent / "run.json"
+    if head["kind"] == "trained" and train_record.is_file():
+        saved = json.loads(train_record.read_text(encoding="utf-8"))
+        training_run = {"id": saved.get("id"), "label": saved.get("label"), "status": saved.get("status")}
+    return {"path": _relative(model_path), "sha256": sha256_file(model_path), "head": head,
+            "training_run": training_run, "reportable": training_run.get("label") == "baseline",
+            "note": "Only a baseline training run is reportable; reference COCO and smoke checkpoints are development aids."}
 
 
 def read_image(path: Path):
@@ -275,18 +290,9 @@ def infer(args, settings: dict) -> None:
     record_path = run_dir / "run.json"
     record = json.loads(record_path.read_text(encoding="utf-8"))
     model, head = load_detector(args.model, args.device, args.reference_coco)
-    # A trained checkpoint sits in artifacts/runs/<id>/weights/; its run.json says smoke or baseline.
-    training_run = {}
-    if head["kind"] == "trained":
-        train_record = args.model.resolve().parent.parent / "run.json"
-        if train_record.is_file():
-            saved = json.loads(train_record.read_text(encoding="utf-8"))
-            training_run = {"id": saved.get("id"), "label": saved.get("label"), "status": saved.get("status")}
     record.update(
         project_revision=project_revision(),
-        model={"path": _relative(args.model), "sha256": sha256_file(args.model), "head": head,
-               "training_run": training_run, "reportable": training_run.get("label") == "baseline",
-               "note": "Only a baseline training run is reportable; reference COCO and smoke checkpoints are development aids."},
+        model=model_record(args.model, head),
         input={"path": _relative(source), "kind": kind, **({"sha256": sha256_file(source)} if kind == "video" else {})},
         environment=_environment(args.device),
         predictions=_relative(run_dir / "predictions.jsonl"),

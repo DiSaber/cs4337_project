@@ -289,6 +289,41 @@ still gives 275 low-score boxes on the gray image and drops zero-size boxes
 
 **Retrieval.** `artifacts/runs/dev-*` on the Linux desktop (not in Git).
 
+## 2026-11-11: D5 evaluator and connected smoke pipeline (T020–T022)
+
+Status: **the pipeline connects end to end with the smoke checkpoint**. Smoke scores
+below show the evaluator runs; they are not findings and are never reported.
+
+**Runs** (Linux desktop CPU, AMD Ryzen 9 9950X, 16 torch threads, Python 3.13.5,
+torch 2.9.1+cu128 on CPU):
+
+- `smoke-images-01`: `infer` with `smoke-03` on the five BDD official-test images;
+  completed. With `dev-smoke-edge-01` (empty/invalid inputs) and
+  `dev-smoke-video-01` (MP4) from the D4 check, this covers images, video, invalid
+  inputs and empty results.
+- `smoke-val-01`: `evaluate --partition val` with `smoke-03` at size 640; completed
+  in about 1 minute. 1,000 of 1,000 images processed, 8 negatives, 295,515
+  predictions at the 0.001 floor, 4,485 zero-size boxes dropped. No undefined values.
+  TP + FN equals the label count overall (14,510) and for each class (car 10,607,
+  pedestrian 1,232, traffic light 2,671). The run predates the CPU-model field, so its
+  timing says only "CPU"; smoke makes no speed claim.
+- `dev-test-nosel-01`, `dev-test-sel-01`: `--partition test` without `--selection` is
+  refused by the argument parser; with one it is refused before any image is read.
+
+**Hand count** (overlays in `artifacts/runs/smoke-val-01/review/`, labels green,
+predictions at score 0.25 and above red). Counted by Claude Code from the overlays;
+Marc Benamou confirmed them on 2026-11-11:
+
+| Sample | Labels | Predictions >= 0.25 | Hand count | Reported |
+| --- | --- | --- | --- | --- |
+| `b3039ada-2ef2a725` (no objects) | none | none | nothing | nothing |
+| `b2156f8e-72e1547c` | 3 traffic lights | none | FN 3 | FN 3 |
+| `b23c9e00-5506ddfb` (night) | 3 cars | car 0.62 on the van, car 0.41 on a tunnel mouth | TP 1, FP 1, FN 2 | TP 1, FP 1, FN 2 |
+| `b4a8e0fd-7ca55075` (duplicate) | 3 cars | car 0.68 and 0.55 on the same car (IoU 0.67 and 0.75), car 0.30 on nothing | TP 1, FP 2, FN 2 | TP 1, FP 2, FN 2 |
+
+In the duplicate case the higher-scored box takes the label even though the second
+box overlaps it more, as the score-first rule requires.
+
 ## 2026-11-11: D3 baseline training (T015)
 
 Status: **`baseline-01` completed**. This is the project's trained baseline.
@@ -325,3 +360,63 @@ project evaluator result is T023.
 **Retrieval.** `artifacts/runs/baseline-01/` on the Linux desktop and
 `MyDrive/cs4337/runs/baseline-01/` in Google Drive (not in Git). Load commands are in
 [usage](../docs/usage.md#training).
+
+## 2026-11-11: D5 baseline validation evaluation (T023)
+
+Status: **core accepted**. Validation metrics, timing and examples are done for
+`baseline-01`, and Marc Benamou reviewed the D1–D5 evidence and accepted it on
+2026-11-11. The trained-model video demo is deferred to the optional D9 dashcam study.
+
+**Runs.** Linux desktop CPU (AMD Ryzen 9 9950X, 16 torch threads), Python 3.13.5,
+torch 2.9.1+cu128 on CPU from the hash-checked CUDA lock; config
+`configs/evaluation/default.yaml` (size 640, FP32, NMS IoU 0.6, floor 0.001, cap 300).
+`baseline-val-01` and `baseline-val-02` evaluated the same checkpoint; `-02` was
+re-run after adding example selection to the evaluator. Their `predictions.jsonl`
+files are byte-identical and all metrics match, so evaluation repeats exactly on this
+machine. **`baseline-val-02` is the reference result** (it has the examples).
+
+**Validation results** (1,000 project-val images, 8 without targets, 14,510 labels;
+all processed, none failed, no undefined values):
+
+| | AP50 | AP50:95 | Precision | Recall | TP | FP | FN |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| All (micro P/R) | 0.521 | 0.239 | 0.625 | 0.606 | 8,798 | 5,290 | 5,712 |
+| car | 0.660 | 0.373 | 0.652 | 0.652 | 6,911 | 3,695 | 3,696 |
+| pedestrian | 0.446 | 0.188 | 0.546 | 0.450 | 554 | 461 | 678 |
+| traffic light | 0.457 | 0.155 | 0.540 | 0.499 | 1,333 | 1,134 | 1,338 |
+
+AP uses pycocotools (IoU 0.50:0.05:0.95, 101 recall points, maxDets 100).
+Precision/recall is the fixed operating point: top 100 boxes per image, score >= 0.25,
+greedy IoU >= 0.5. By box size, AP50:95 is 0.097 small, 0.345 medium, 0.421 large.
+Upstream validation during training gave 0.240 / 0.520 for the same epoch, close to
+the project evaluator.
+
+**Timing.** First 100 val samples in manifest order (list hash in `metrics.json`),
+10 warm-ups, batch 1, FP32, CPU: 26.4 ms per image, 37.8 images/s, covering letterbox,
+normalization, forward pass, NMS and mapping boxes back; decoding, drawing and
+writing are excluded. `-01` measured 27.1 ms, so expect a few percent of variation.
+This is CPU timing on this desktop, not the T4 used for training.
+
+**Examples** (rule in `metrics.json`; overlays in
+`artifacts/runs/baseline-val-02/examples/`, labels green):
+
+| Class | Success (TP/FP/FN) | Failure (TP/FP/FN) |
+| --- | --- | --- |
+| car | `b36a5c73-cf70561a`, dawn/dusk, snowy city street (6/0/0) | `b1c66a42-6f7d68ca`, overcast city street (15/9/4) |
+| pedestrian | `b206a78b-99f405ab`, night city street (1/0/0) | `b1d0a191-06deb55d`, snowy city street (7/4/2) |
+| traffic light | `b2bdc7e5-b4ebc5bd`, night highway (2/0/0) | `b1e2346e-c5f98707`, night highway (1/1/5) |
+
+What the failure overlays show: in the car failure, long rows of small, distant and
+overlapping parked cars produce misses and boxes that do not line up with any single
+label. In the pedestrian failure, a tight group of people on the right is merged or
+split wrongly, and a pedestrian countdown signal is boxed as a traffic light. In the
+traffic-light failure, glare, windshield smears and lens flare at night leave only a
+few pixels per light; 5 of 6 are missed.
+
+**New-scene images (T018 part).** `baseline-images-01`: the trained baseline on the
+five BDD official-test images, copied to `data/new-scenes/images/` (SHA-256 prefixes
+`36813613`, `69333be5`, `1ae9c00d`, `0c095186`, `89dfb8fa`). All completed; at score
+0.25 they show 5–29 cars, 0–5 pedestrians and 0–5 traffic lights. Unlike the reference
+COCO model, the baseline does not box the ego car's hood, but it calls a white truck a
+car (0.34); trucks are a separate, non-target BDD class. These images come from the
+same dataset and cameras as training, so they are new scenes, not new conditions.
